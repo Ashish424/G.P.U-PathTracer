@@ -1,0 +1,10 @@
+https://github.com/AndiH/CMake
+for cmake with Cuda setup
+http://stackoverflow.com/questions/16070019/how-to-keep-kernel-code-inside-separate-cu-file-other-than-the-main-cpp
+for cmake defined variables for qt
+http://doc.qt.io/qt-5/cmake-manual.html
+//learn opengl see for opengl setup
+
+
+//qt quick integration with cmake
+https://github.com/mattfife/QtQuick-with-cmake

@@ -3,6 +3,7 @@
 #2 GENERAL JETBRAINS IDE STUFF
 
 # User-specific stuff:
+.idea/
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/dictionaries
