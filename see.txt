@@ -8,3 +8,10 @@ http://doc.qt.io/qt-5/cmake-manual.html
 
 //qt quick integration with cmake
 https://github.com/mattfife/QtQuick-with-cmake
+
+
+//git submodules
+http://stackoverflow.com/questions/1992018/git-submodule-update-needed-only-initially/2227598#2227598
+http://www.speirs.org/blog/2009/5/11/understanding-git-submodules.html
+https://chrisjean.com/git-submodules-adding-using-removing-and-updating/
+http://blogs.atlassian.com/2013/03/git-submodules-workflows-tips/

@@ -3,19 +3,46 @@ project(GpuProject)
 set(CMAKE_CXX_STANDARD 11)
 #set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
 
-
+#setup qt
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt5Widgets REQUIRED )
+find_package(Qt5OpenGL REQUIRED )
+
 #find_package(Qt5Core REQUIRED )
 #find_package(Qt5Gui REQUIRED )
 find_package(CUDA REQUIRED)
 MESSAGE( STATUS "cuda toolkit location" ${CUDA_TOOLKIT_ROOT_DIR} )
-MESSAGE( STATUS "QT5 Core location " ${Qt5Core_DIR})
 MESSAGE( STATUS "QT5 widgets version " ${Qt5Widgets_VERSION})
+#MESSAGE( STATUS "QT5 Core location " ${Qt5Core_DIR})
 
 
+#add assimp library
+option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+option(ASSIMP_BUILD_SAMPLES OFF)
+option(ASSIMP_BUILD_TESTS OFF)
+add_subdirectory(deps/assimp)
+
+
+#add glraw library
+option(BUILD_SHARED_LIBS  OFF)
+option(OPTION_SELF_CONTAINED OFF)
+option(OPTION_BUILD_TESTS OFF)
+option(OPTION_BUILD_DOCS OFF)
+add_subdirectory(deps/glraw)
+
+
+
+
+
+include_directories(
+        "deps/assimp/include/"
+        "deps/glad/include/"
+        "deps/glm/"
+        "deps/glraw/source/glraw/")
+
+file(GLOB DEPS_SOURCES deps/glad/src/glad.c)
 
 if(CUDA_FOUND)
     # compared to class settings, we let NVidia's FindCUDA CMake detect
@@ -42,11 +69,13 @@ else(CUDA_FOUND)
     message("CUDA is not installed on this system.")
 endif()
 
+add_executable(testQT main.cpp CGCanvas.cpp CGCanvas.hpp ${DEPS_SOURCES})
 
-#find_package(OpenCV REQUIRED)
+#cuda_add_executable(
+#        hellocuda
+#        gpu.cpp
+#)
 
-cuda_add_executable(
-        hellocuda
-        gpu.cpp
-)
-target_link_libraries(hellocuda Qt5::Widgets)
+
+#TODO libdl required only for non windows platforms add conditional here
+target_link_libraries(testQT assimp glraw  Qt5::Widgets -ldl)
