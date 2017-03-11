@@ -2,8 +2,8 @@
 // Created by ashish on 3/7/17.
 //
 
-#include "CGCanvas.hpp"
-
+#include <glad/glad.h>
+#include "Scene.hpp"
 #include <QKeyEvent>
 #include <QDebug>
 #include <QOpenGLContext>
@@ -35,7 +35,7 @@ void APIENTRY openglCallbackFunction(GLenum source,
                                      const void* userParam);
 
 void initShaderAndBuffers();
-CGCanvas::CGCanvas(QWidget *parent):QOpenGLWidget(parent)
+Scene::Scene(QWidget *parent):QOpenGLWidget(parent)
 {
 //    QObject::connect(timer,SIGNAL(timeout()),this,SLOT(FixedUpdate()));
 //    timer->start(timestep);
@@ -44,7 +44,7 @@ CGCanvas::CGCanvas(QWidget *parent):QOpenGLWidget(parent)
 
 
 
-void CGCanvas::initializeGL()
+void Scene::initializeGL()
 {
 
 
@@ -65,15 +65,14 @@ void CGCanvas::initializeGL()
     qDebug() << "                    VERSION:      " << (const char*)glGetString(GL_VERSION);
     qDebug() << "                    GLSL VERSION: " << (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
     qDebug() << "endstuff\n";
+
+
+
+
     glClearColor(0.0f,0.0f,0.0f,1.0f);
 
-
-
-
-
-
     if(glDebugMessageCallback){
-        qDebug() << "Register OpenGL debug callback ";
+        qDebug() << "Registered OpenGL debug callback ";
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(openglCallbackFunction, nullptr);
         GLuint unusedIds = 0;
@@ -91,28 +90,21 @@ void CGCanvas::initializeGL()
 
 
 
-    GLboolean ans = GL_FALSE;
-    glGetBooleanv(GL_CULL_FACE,&ans);
-    qDebug() << "culling is " << ans;
 
     initShaderAndBuffers();
-
-
-
-
 
 
 }
 
 
-void CGCanvas::resizeGL(int w, int h)
+void Scene::resizeGL(int w, int h)
 {
 
     glViewport(0,0,w,h);
     //TODO update matrix here
 }
 
-void CGCanvas::paintGL()
+void Scene::paintGL()
 {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -150,7 +142,7 @@ void CGCanvas::paintGL()
 
 }
 
-CGCanvas::~CGCanvas() {
+Scene::~Scene() {
 
 
     glDeleteVertexArrays(1, &VAO);
@@ -161,7 +153,7 @@ CGCanvas::~CGCanvas() {
 
 }
 
-//void CGCanvas::FixedUpdate() {
+//void Scene::FixedUpdate() {
 
 
     //cv::imshow("PerlinNoise",img);

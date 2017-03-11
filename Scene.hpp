@@ -5,24 +5,22 @@
 #ifndef GPUPROJECT_CGCANVAS_HPP
 #define GPUPROJECT_CGCANVAS_HPP
 
-#include <glad/glad.h>
 #include <QtWidgets/QOpenGLWidget>
 
 
-class CGCanvas : public QOpenGLWidget
+class Scene : public QOpenGLWidget
 {
 Q_OBJECT
 
 public:
-    CGCanvas(QWidget *parent=0);
-    ~CGCanvas();
+    Scene(QWidget *parent=0);
+    ~Scene();
 
     // QOpenGLWidget interface
 protected:
     void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
-
 
 
 private:

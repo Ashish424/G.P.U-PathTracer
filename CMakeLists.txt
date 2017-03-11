@@ -18,18 +18,20 @@ MESSAGE( STATUS "QT5 widgets version " ${Qt5Widgets_VERSION})
 #MESSAGE( STATUS "QT5 Core location " ${Qt5Core_DIR})
 
 
+
+
 #add assimp library
-option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
-option(ASSIMP_BUILD_SAMPLES OFF)
-option(ASSIMP_BUILD_TESTS OFF)
+option(ASSIMP_BUILD_ASSIMP_TOOLS "" OFF)
+option(ASSIMP_BUILD_SAMPLES "" OFF)
+option(ASSIMP_BUILD_TESTS "" OFF)
 add_subdirectory(deps/assimp)
 
 
 #add glraw library
-option(BUILD_SHARED_LIBS  OFF)
-option(OPTION_SELF_CONTAINED OFF)
-option(OPTION_BUILD_TESTS OFF)
-option(OPTION_BUILD_DOCS OFF)
+option(BUILD_SHARED_LIBS  "" OFF)
+option(OPTION_SELF_CONTAINED "" OFF)
+option(OPTION_BUILD_TESTS "" OFF)
+option(OPTION_BUILD_DOCS "" OFF)
 add_subdirectory(deps/glraw)
 
 
@@ -69,13 +71,16 @@ else(CUDA_FOUND)
     message("CUDA is not installed on this system.")
 endif()
 
-add_executable(testQT main.cpp CGCanvas.cpp CGCanvas.hpp ${DEPS_SOURCES})
+add_executable(testQT main.cpp Scene.cpp Scene.hpp ${DEPS_SOURCES})
 
 #cuda_add_executable(
 #        hellocuda
 #        gpu.cpp
 #)
 
+set(PLATFORM_LINK )
+if (UNIX)
+    set(PLATFORM_LINK -ldl)
+endif (UNIX)
 
-#TODO libdl required only for non windows platforms add conditional here
-target_link_libraries(testQT assimp glraw  Qt5::Widgets -ldl)
+target_link_libraries(testQT assimp glraw  Qt5::Widgets ${PLATFORM_LINK})

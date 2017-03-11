@@ -2,13 +2,12 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QPushButton>
 #include <QtOpenGL/QGLFormat>
-#include "CGCanvas.hpp"
+#include "Scene.hpp"
 
 
 int main( int argc, char **argv )
 {
     QApplication application(argc,argv);
-
 
     QSurfaceFormat format;
     format.setVersion(4,3);
@@ -17,7 +16,7 @@ int main( int argc, char **argv )
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
     QSurfaceFormat::setDefaultFormat(format);
-    CGCanvas c;
+    Scene c;
     c.show();
     return application.exec();
 }
