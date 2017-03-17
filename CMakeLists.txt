@@ -12,8 +12,11 @@ find_package(Qt5OpenGL REQUIRED )
 
 #find_package(Qt5Core REQUIRED )
 #find_package(Qt5Gui REQUIRED )
+#use cuda on linux only
+if(UNIX)
 find_package(CUDA REQUIRED)
 MESSAGE( STATUS "cuda toolkit location" ${CUDA_TOOLKIT_ROOT_DIR} )
+endif(UNIX)
 MESSAGE( STATUS "QT5 widgets version " ${Qt5Widgets_VERSION})
 #MESSAGE( STATUS "QT5 Core location " ${Qt5Core_DIR})
 
@@ -62,7 +65,6 @@ if(CUDA_FOUND)
 #  -gencode;arch=compute_13,code=sm_13;
 ")
 
-
     # add debugging to CUDA NVCC flags.  For NVidia's NSight tools.
     set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} "-G")
 
@@ -70,6 +72,12 @@ if(CUDA_FOUND)
 else(CUDA_FOUND)
     message("CUDA is not installed on this system.")
 endif()
+
+
+
+add_subdirectory(CpuRayTracer)
+
+
 
 add_executable(testQT main.cpp Scene.cpp Scene.hpp ${DEPS_SOURCES})
 
