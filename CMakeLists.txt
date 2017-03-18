@@ -24,28 +24,29 @@ MESSAGE( STATUS "QT5 widgets version " ${Qt5Widgets_VERSION})
 
 
 #add assimp library
-option(ASSIMP_BUILD_ASSIMP_TOOLS "" OFF)
-option(ASSIMP_BUILD_SAMPLES "" OFF)
-option(ASSIMP_BUILD_TESTS "" OFF)
-add_subdirectory(deps/assimp)
+#option(ASSIMP_BUILD_ASSIMP_TOOLS "" OFF)
+#option(ASSIMP_BUILD_SAMPLES "" OFF)
+#option(ASSIMP_BUILD_TESTS "" OFF)
+#add_subdirectory(deps/assimp)
 
 
 #add glraw library
-option(BUILD_SHARED_LIBS  "" OFF)
-option(OPTION_SELF_CONTAINED "" OFF)
-option(OPTION_BUILD_TESTS "" OFF)
-option(OPTION_BUILD_DOCS "" OFF)
-add_subdirectory(deps/glraw)
+#option(BUILD_SHARED_LIBS  "" OFF)
+#option(OPTION_SELF_CONTAINED "" OFF)
+#option(OPTION_BUILD_TESTS "" OFF)
+#option(OPTION_BUILD_DOCS "" OFF)
+#TODO see if you need this or use just stb image lib
+#add_subdirectory(deps/glraw)
 
 
 
 
 
 include_directories(
-        "deps/assimp/include/"
-        "deps/glad/include/"
-        "deps/glm/"
-        "deps/glraw/source/glraw/")
+        "deps/glad/include"
+        "deps/glm"
+        #"deps/assimp/include"
+        "deps/glraw/source/glraw")
 
 file(GLOB DEPS_SOURCES deps/glad/src/glad.c)
 
@@ -78,8 +79,8 @@ endif()
 add_subdirectory(CpuRayTracer)
 
 
-
-add_executable(testQT main.cpp Scene.cpp Scene.hpp ${DEPS_SOURCES})
+#C.P.U executable
+add_executable(cpuTracer src/main.cpp src/Scene.cpp src/Scene.hpp src/Camera.cpp src/Camera.hpp ${DEPS_SOURCES})
 
 #cuda_add_executable(
 #        hellocuda
@@ -91,4 +92,4 @@ if (UNIX)
     set(PLATFORM_LINK -ldl)
 endif (UNIX)
 
-target_link_libraries(testQT assimp glraw  Qt5::Widgets ${PLATFORM_LINK})
+target_link_libraries(cpuTracer  Qt5::Widgets ${PLATFORM_LINK})
