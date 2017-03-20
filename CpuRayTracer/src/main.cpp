@@ -10,16 +10,18 @@
 #include "renderer.h"
 
 
+
+
+
+
 int main(int argc, char *argv[]) {
 
-    time_t start, stop;
-    time(&start);               // Start execution timer
-    int samples = 4;            // Default samples per pixel
+    int samples = 16;            // Default samples per pixel
 
     if (argc == 2) samples = atoi(argv[1]);
+    Camera camera = Camera(glm::dvec3(0, -5, 2.5), glm::dvec3(0,0,0), 1280/2, 720/2);     // Create camera
 
-    Camera camera = Camera(glm::dvec3(0, -5, 2.5), glm::dvec3(0,0,1), 1280, 720);     // Create camera
-    Scene scene = Scene();                                              // Create scene
+    Scene scene = Scene();// Create scene
 
     // Add objects to scene
     scene.add( dynamic_cast<Object*>(new Sphere(glm::dvec3(0,0,-1000), 1000, Material())) );
@@ -30,16 +32,9 @@ int main(int argc, char *argv[]) {
     scene.add( dynamic_cast<Object*>(new Mesh(glm::dvec3(), "../obj/dragon2.obj", Material(DIFF, glm::dvec3(0.9, 0.9, 0.9)))) );
 
 
-    Renderer renderer = Renderer(&scene, &camera);  // Create renderer with our scene and camera
-    renderer.render(samples);                       // Render image to pixel buffer
-    renderer.save_image("render.png");              // Save image
-
-    // Print duration information
-    time(&stop);
-    double diff = difftime(stop, start);
-    int hrs = (int)diff/3600;
-    int mins = ((int)diff/60)-(hrs*60);
-    int secs = (int)diff-(hrs*3600)-(mins*60);
-    printf("\rRendering (%i samples): Complete!\nTime Taken: %i hrs, %i mins, %i secs\n\n", samples, hrs, mins, secs);
+    Renderer renderer = Renderer(&scene, &camera);
+//    renderer.render();
+    renderer.runInLoop();
+//    renderer.save_image("./render.png");
     return 0;
 }

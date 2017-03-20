@@ -2,7 +2,9 @@
 #include "camera.h"
 
 #include <glm/vec3.hpp>
-
+#include <iostream>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 Camera::Camera(glm::dvec3 position, glm::dvec3 target, int width, int height) {
     using glm::cross;
     using glm::normalize;
@@ -19,6 +21,13 @@ Camera::Camera(glm::dvec3 position, glm::dvec3 target, int width, int height) {
     m_direction = normalize(dvec3(target.x - m_position.x,target.y - m_position.y,target.z - m_position.z));
     m_x_direction = cross(dvec3(0, 0, 1),glm::dvec3(-1*m_direction.x,-1*m_direction.y,-1*m_direction.z));
     m_y_direction = normalize(cross(m_x_direction,(m_direction)));
+
+    using std::cout;
+    using std::endl;
+
+    cout << glm::to_string(m_direction)<< endl;
+    cout << glm::to_string(m_x_direction)<< endl;
+    cout << glm::to_string(m_y_direction)<< endl;
 
     m_x_spacing = (2.0 * m_ratio)/(double)m_width;
     m_y_spacing = (double)2.0/(double)m_height;

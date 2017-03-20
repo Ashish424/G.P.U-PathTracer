@@ -39,11 +39,12 @@ MESSAGE( STATUS "QT5 widgets version " ${Qt5Widgets_VERSION})
 #add_subdirectory(deps/glraw)
 
 
-
+add_subdirectory(deps/glfw)
 
 
 include_directories(
         "deps/glad/include"
+        "deps/glfw/include"
         "deps/glm"
         #"deps/assimp/include"
         "deps/glraw/source/glraw")
@@ -87,9 +88,9 @@ add_executable(cpuTracer src/main.cpp src/Scene.cpp src/Scene.hpp src/Camera.cpp
 #        gpu.cpp
 #)
 
-set(PLATFORM_LINK )
+set(PLATFORM_LINK_GLAD )
 if (UNIX)
-    set(PLATFORM_LINK -ldl)
+    set(PLATFORM_LINK_GLAD -ldl)
 endif (UNIX)
 
-target_link_libraries(cpuTracer  Qt5::Widgets ${PLATFORM_LINK})
+target_link_libraries(cpuTracer  Qt5::Widgets ${PLATFORM_LINK_GLAD})
