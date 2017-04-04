@@ -3,7 +3,7 @@
 
 
 #include "scene.h"
-#include "camera.h"
+#include "camera.hpp"
 
 
 #include <glad/glad.h>
@@ -33,6 +33,11 @@ private:
     GLuint textureImage;
     GLuint quadVao = 0,quadVbo;
     GLuint quadProgram = 0;
+    int interactiveSamples = 128*8;
+    int minInteractiveSamples = 128;
+    //TODO see this value
+    int maxInteractiveSamples = 128;
+
 
 
 };

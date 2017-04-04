@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 11)
 #set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
 
 #setup qt
+#TODO see if you require this or use just imgui
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -46,6 +48,7 @@ include_directories(
         "deps/glad/include"
         "deps/glfw/include"
         "deps/glm"
+#)
         #"deps/assimp/include"
         "deps/glraw/source/glraw")
 
@@ -81,16 +84,18 @@ add_subdirectory(CpuRayTracer)
 
 
 #C.P.U executable
-add_executable(cpuTracer src/main.cpp src/Scene.cpp src/Scene.hpp src/Camera.cpp src/Camera.hpp ${DEPS_SOURCES})
+#add_executable(cpuTracer src/main.cpp src/Scene.cpp
+#        src/Scene.hpp src/Camera.cpp src/Camera.hpp
+#        ${DEPS_SOURCES})
 
 #cuda_add_executable(
 #        hellocuda
 #        gpu.cpp
 #)
 
-set(PLATFORM_LINK_GLAD )
-if (UNIX)
-    set(PLATFORM_LINK_GLAD -ldl)
-endif (UNIX)
+#set(PLATFORM_LINK_GLAD )
+#if (UNIX)
+#    set(PLATFORM_LINK_GLAD -ldl)
+#endif (UNIX)
 
-target_link_libraries(cpuTracer  Qt5::Widgets ${PLATFORM_LINK_GLAD})
+#target_link_libraries(cpuTracer  Qt5::Widgets ${PLATFORM_LINK_GLAD})

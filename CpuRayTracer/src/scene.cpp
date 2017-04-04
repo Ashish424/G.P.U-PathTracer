@@ -22,24 +22,18 @@ ObjectIntersection Scene::intersect(const Ray &ray) {
 
 glm::dvec3 Scene::trace_ray(const Ray &ray, int depth, unsigned short*Xi) {
 
+    //TODO use C++11 random distributions
     ObjectIntersection isct = intersect(ray);
 
-    // If no hit, return world colour
     if (!isct.hit) return glm::dvec3();
-    /*if (!isct.hit){
-        double u, v;
-        v = (acos(glm::dvec3(0,0,1).dot(ray.direction))/M_PI);
-        u = (acos(ray.direction.y)/ M_PI);
-        return bg.get_pixel(fabs(u), fabs(v))*1.2;
-    }*/
+
 
     if (isct.m.get_type() == EMIT) return isct.m.get_emission();
-    //glm::dvec3 x = ray.origin + ray.direction * isct.u;
+
 
     glm::dvec3 colour = isct.m.get_colour();
-    //return colour * isct.n.dot((glm::dvec3(1,-3,8)-x).norm());
 
-    // Calculate max reflection
+
     double p = colour.x>colour.y && colour.x>colour.z ? colour.x : colour.y>colour.z ? colour.y : colour.z;
 
     // Russian roulette termination.
@@ -60,5 +54,4 @@ glm::dvec3 Scene::trace_ray(const Ray &ray, int depth, unsigned short*Xi) {
     auto v2= trace_ray(reflected,depth,Xi);
     return glm::dvec3(colour.x*v2.x,colour.y*v2.y,colour.z*v2.z);
 
-//    return colour.mult( trace_ray(reflected, depth, Xi) );
 }

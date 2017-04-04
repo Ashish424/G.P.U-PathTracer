@@ -67,6 +67,7 @@ Renderer::Renderer(Scene *scene, Camera *camera) {
 
         using namespace std;
 
+        //TODO add opengl error callback
 // Create a GLFWwindow object
         mainWindow = glfwCreateWindow(camera->get_width(), camera->get_height(), "Cpu Path Tracer", nullptr,
                                       nullptr);
@@ -137,9 +138,6 @@ Renderer::Renderer(Scene *scene, Camera *camera) {
 
 void Renderer::runInLoop() {
 
-
-
-
     double last = 0;
     glfwSetTime(last);
     double delta = 0.0f;
@@ -153,23 +151,25 @@ void Renderer::runInLoop() {
 
 
         using namespace std;
-        cout <<delta << endl;
-        update(delta);
+//        cout <<delta << endl;
+//        update(delta);
 
-        //TODO add sample logic here
-        render(10);
+        render(interactiveSamples);
         draw();
         glfwSwapBuffers(mainWindow);
 
     }
 
-
-
-
-
 }
 void Renderer::update(double delta){
 
+    if(camera->isDirty()){
+        interactiveSamples = minInteractiveSamples;
+    }
+    else{
+        //double the number of samples upto a limit
+        interactiveSamples =std::min(interactiveSamples<<1,maxInteractiveSamples);
+    }
 
 
 }
@@ -200,14 +200,11 @@ void Renderer::render(int samples) {
     double samples_recp = 1./samples;
     std::cout << samples << std::endl;
 
-    // Main Loop
     #pragma omp parallel for schedule(dynamic, 1)       // OpenMP
     for (int y=0; y<height; y++){
         unsigned short Xi[3]={0,0,y*y*y};               // Stores seed for erand48
 
-//        fprintf(stderr, "\rRendering (%i samples): %.2f%% ",      // Prints
-//                samples, (double)y/height*100);                   // progress
-
+        fprintf(stderr, "\rRendering (%i samples): %.2f%% ", samples, (double)y/height*100);
         for (int x=0; x<width; x++){
             glm::dvec3 col = glm::dvec3();
 
@@ -215,7 +212,7 @@ void Renderer::render(int samples) {
                 Ray ray = camera->get_ray(x, y, a>0, Xi);
                 col = col + scene->trace_ray(ray,0,Xi);
             }
-
+            //do all the tracing in double,in the end save in int
             pixelBuffer[(y)*width + x].x = toInt((col * samples_recp).x);
             pixelBuffer[(y)*width + x].y = toInt((col * samples_recp).y);
             pixelBuffer[(y)*width + x].z = toInt((col * samples_recp).z);
@@ -294,7 +291,5 @@ GLuint makeProgram(GLuint vS, GLuint fS,bool deleteDetachShaders){
 Renderer::~Renderer() {
     glDeleteVertexArrays(1, &quadVao);
     glDeleteBuffers(1, &quadVbo);
-
     glDeleteProgram(quadProgram);
-
 }

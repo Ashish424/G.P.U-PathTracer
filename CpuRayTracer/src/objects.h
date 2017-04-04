@@ -2,8 +2,8 @@
 #define OBJECTS_H
 
 
-#include "ray.h"
-#include "triangle.h"
+#include "ray.hpp"
+#include "triangle.hpp"
 #include "kdtree.h"
 #include "material.h"
 #include "../lib/tiny_obj_loader/tiny_obj_loader.h"

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
 
-#include "ray.h"
+#include "ray.hpp"
 #include "material.h"
 #include <glm/glm.hpp>
 Material::Material(MaterialType t, glm::dvec3 c, glm::dvec3 e, Texture tex) {

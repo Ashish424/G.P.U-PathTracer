@@ -4,8 +4,8 @@
 #include <vector>
 
 
-#include "ray.h"
-#include "triangle.h"
+#include "ray.hpp"
+#include "triangle.hpp"
 
 class KDNode {
 public:

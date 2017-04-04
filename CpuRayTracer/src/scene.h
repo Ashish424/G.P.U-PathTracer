@@ -1,7 +1,7 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "ray.h"
+#include "ray.hpp"
 
 #include "objects.h"
 

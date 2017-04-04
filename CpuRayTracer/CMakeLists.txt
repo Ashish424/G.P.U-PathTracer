@@ -5,7 +5,6 @@ project(CpuRayTracer)
 #target_link_libraries(testQT assimp glraw  Qt5::Widgets ${PLATFORM_LINK})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-narrowing -march=native -m64 -O3  -funroll-loops")
-
 FIND_PACKAGE( OpenMP REQUIRED)
 if(OPENMP_FOUND)
     message("OPENMP FOUND")
@@ -15,8 +14,6 @@ if(OPENMP_FOUND)
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_SOURCE_DIR}/bin)
-
-
 set(SOURCE_FILES
         src/main.cpp
         src/material.cpp
@@ -29,8 +26,9 @@ set(SOURCE_FILES
         lib/rand48/rand48.c
         lib/lodepng/lodepng.cpp
         lib/tiny_obj_loader/tiny_obj_loader.cc)
+file(GLOB SOURCE_HEADERS "src/*.hpp")
 
-add_executable(pathtracer ${SOURCE_FILES} ${DEPS_SOURCES})
+add_executable(pathtracer ${SOURCE_FILES} ${SOURCE_HEADERS} ${DEPS_SOURCES})
 target_link_libraries(pathtracer glfw ${GLFW_LIBRARIES} -ldl )
 # copy shader files to build directory
 file(GLOB OBJECTS

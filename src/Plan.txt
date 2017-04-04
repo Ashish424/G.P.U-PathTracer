@@ -1,0 +1,6 @@
+setup cuda and opengl interop
+build basic cuda path tracer
+use thrust for various datastructures
+use cuda streams
+add support for data structures(BVH)
+

@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 
-#include "ray.h"
+#include "ray.hpp"
 #include "material.h"
 #include "objects.h"
 //#include "../lib/fastbvh/BVH.h"
