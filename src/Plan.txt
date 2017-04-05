@@ -1,6 +1,25 @@
 setup cuda and opengl interop
+add cuda timer events
 build basic cuda path tracer
 use thrust for various datastructures
 use cuda streams
 add support for data structures(BVH)
+add support for FPS display
+profile with nvidia profiler
+Make sure no printing inside critical loops
 
+
+
+GUI Design
+=>basic Camera Controls
+=>optimize packing data for efficient retrival on GPU
+
+=>Cuda controls(Ray depth,Samples,block size)
+Interactive Samples,Interactive Depth
+
+=>Gl controls(Fog)
+
+Report additions
+=>Basic GPU implementation(=>recursion overhead avoided with loops)
+=>Speedup curves
+=>timing data for kernels and total gpu time and cpu comparisions

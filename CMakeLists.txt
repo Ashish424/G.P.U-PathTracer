@@ -2,12 +2,14 @@ cmake_minimum_required(VERSION 3.6)
 project(GpuProject)
 set(CMAKE_CXX_STANDARD 11)
 #set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_SOURCE_DIR}/bin)
+
 
 #setup qt
 #TODO see if you require this or use just imgui
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+#set(CMAKE_AUTOMOC ON)
+#set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt5Widgets REQUIRED )
 find_package(Qt5OpenGL REQUIRED )
@@ -81,7 +83,7 @@ endif()
 
 
 add_subdirectory(CpuRayTracer)
-
+add_subdirectory(GpuPathTracer)
 
 #C.P.U executable
 #add_executable(cpuTracer src/main.cpp src/Scene.cpp
