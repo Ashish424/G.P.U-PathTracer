@@ -57,10 +57,7 @@ include_directories(
 file(GLOB DEPS_SOURCES deps/glad/src/glad.c)
 
 if(CUDA_FOUND)
-    # compared to class settings, we let NVidia's FindCUDA CMake detect
-    # whether to build x64.  We tell it to support most devices, though,
-    # to make sure more people can easily run class code without knowing
-    # about this compiler argument
+    #TODO see these flags
     set(CUDA_NVCC_FLAGS "
   -ccbin /usr/bin/gcc-4.9;
 #  -gencode;arch=compute_30,code=sm_30;
@@ -71,9 +68,9 @@ if(CUDA_FOUND)
 #  -gencode;arch=compute_12,code=sm_12;
 #  -gencode;arch=compute_13,code=sm_13;
 ")
-
-    # add debugging to CUDA NVCC flags.  For NVidia's NSight tools.
-    set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} "-G")
+#TODO off them in release build
+# add debugging to CUDA NVCC flags.  For NVidia's NSight tools.
+set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} " -G")
 
 
 else(CUDA_FOUND)

@@ -1,4 +1,3 @@
-setup cuda and opengl interop
 add cuda timer events
 build basic cuda path tracer
 use thrust for various datastructures
@@ -7,6 +6,7 @@ add support for data structures(BVH)
 add support for FPS display
 profile with nvidia profiler
 Make sure no printing inside critical loops
+Experiment withg different data types
 
 
 
@@ -23,3 +23,9 @@ Report additions
 =>Basic GPU implementation(=>recursion overhead avoided with loops)
 =>Speedup curves
 =>timing data for kernels and total gpu time and cpu comparisions
+
+
+
+
+
+[DONE]setup cuda and opengl interop

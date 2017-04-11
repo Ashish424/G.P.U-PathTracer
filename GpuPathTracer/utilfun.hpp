@@ -8,19 +8,18 @@
 
 #include <glad/glad.h>
 #include <vector>
+#include <iostream>
 #include <string>
+#include <cuda_runtime.h>
 class GLFWwindow;
 
 namespace uf {
     template<typename T>
-    void check(T result, char const *const func, const char *const file, int const line) {
-        if (result) {
-          //FIXME enable this
-//        fprintf(stderr, "CUDA error at %s:%d code=%d(%s) \"%s\" \n",
-//                file, line, static_cast<unsigned int>(result), _cudaGetErrorEnum(result), func);
-//        DEVICE_RESET
-//         Make sure we call CUDA Device Reset before exiting
-//                exit(EXIT_FAILURE);
+    void check(T err, const char* const func, const char* const file, const int line) {
+        if (err != cudaSuccess) {
+            std::cerr << "CUDA error at: " << file << ":" << line << std::endl;
+            std::cerr << cudaGetErrorString(err) << " " << func << std::endl;
+            exit(1);
         }
     }
 

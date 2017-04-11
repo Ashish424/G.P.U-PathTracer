@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <cuda_runtime_api.h>
+#include <cuda_gl_interop.h>
 
 
 using std::cout;
@@ -81,7 +82,7 @@ namespace uf {
         }
 
         checkCudaErrors(cudaSetDevice(devID));
-        cout << "CUDA Device ID: "<< devID <<  "name: " << deviceProp.name << endl;
+        cout << "CUDA Device ID: "<< devID << " " <<  "name: " << deviceProp.name << endl;
         return devID;
 
     }

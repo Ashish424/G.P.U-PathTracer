@@ -8,14 +8,34 @@
 #include <glad/glad.h>
 #include <string>
 #include <vector_types.h>
+#include <glm/glm.hpp>
 
 class GLFWwindow;
 
+struct CamInfo{
+    glm::vec3 front,right,up,pos;
+    float dist;
+    float pitch ,yaw;
+    float aspect;
+    float fov;
+
+};
+struct kernelInfo{
+    dim3 blockSize;
+    unsigned int * dev_drawRes;
+    int width,height;
+    CamInfo cam;
+};
 class BasicScene{
 public:
     BasicScene(int width, int height, const std::string &title);
     ~BasicScene();
     void run();
+
+
+    kernelInfo info;
+
+
 
 private:
     friend void mousePosCallback(GLFWwindow * window,double posX,double posY);
@@ -23,11 +43,6 @@ private:
     friend void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
     void update(double delta);
     void draw();
-    struct kernelInfo{
-        dim3 blockSize;
-        unsigned int * drawRes;
-        int width,height;
-    }info;
     void launchKernel(const kernelInfo & info);
 
 
@@ -39,16 +54,7 @@ private:
     struct cudaGraphicsResource *cudaTexResource;
     //the cuda image to use
     unsigned int * cudaDestResource;
-
     int width,height;
-
-
-//    float pitch = 0;
-//    float roll = 0;
-//    float savedCamFov =glm::radians(75.0f);
-//    GLuint quadVAO = 0,quadVBO;
-
-
 
 };
 

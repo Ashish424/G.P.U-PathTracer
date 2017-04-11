@@ -5,14 +5,13 @@
 #include "BasicScene.hpp"
 #include <GLFW/glfw3.h>
 #include "utilfun.hpp"
-#include <iostream>
 #include <cassert>
-
-
-#include <cuda_gl_interop.h>
 #include <cuda.h>
-#include <cuda_runtime.h>
-#include <cuda_runtime_api.h>
+#include <cuda_gl_interop.h>
+#include <cstring>
+#include <glm/gtc/type_ptr.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
 //quad positions in NDC Space
 GLfloat quadVertices[20] = {
@@ -27,6 +26,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
     using std::cout;
     using std::endl;
+
 
     //init glfw
     {
@@ -61,7 +61,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
     //setup texture
     {
-        //TODO something unreguster maybe
+        //TODO something unregister maybe
         renderQuad.tex = uf::createGlTex2DCuda(width, height);
         checkCudaErrors(cudaGraphicsGLRegisterImage(&cudaTexResource, renderQuad.tex, GL_TEXTURE_2D,
                                                     cudaGraphicsMapFlagsWriteDiscard));
@@ -106,11 +106,74 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     }
     //kernel default parameters
     {
-        info.drawRes = cudaDestResource;
+        info.dev_drawRes = cudaDestResource;
         info.width = width;
         info.height = height;
         info.blockSize = dim3(16,16,1);
     }
+    //TODO remove this hardcoding
+    //load up mesh
+    {
+
+    }
+    //TODO deletions here too
+    {
+//        float *buffer;
+//        cudaMalloc(&buffer, N*sizeof(float));
+//
+//        // create texture object
+//        cudaResourceDesc resDesc;
+//        memset(&resDesc, 0, sizeof(resDesc));
+//        resDesc.resType = cudaResourceTypeLinear;
+//        resDesc.res.linear.devPtr = buffer;
+//        resDesc.res.linear.desc.f = cudaChannelFormatKindFloat;
+//        resDesc.res.linear.desc.x = 32; // bits per channel
+//        resDesc.res.linear.sizeInBytes = N*sizeof(float);
+//
+//        cudaTextureDesc texDesc;
+//        memset(&texDesc, 0, sizeof(texDesc));
+//        texDesc.readMode = cudaReadModeElementType;
+//
+//        // create texture object: we only have to do this once!
+//        cudaTextureObject_t tex=0;
+//        cudaCreateTextureObject(&tex, &resDesc, &texDesc, NULL);
+//
+//        call_kernel(tex); // pass texture as argument
+
+    }
+
+    //setup camera
+
+    {
+
+        info.cam.dist = height/2;
+        info.cam.pitch = 0;
+        info.cam.yaw = 0;
+        info.cam.aspect = width*1.0f/height;
+        info.cam.fov = glm::tan(glm::radians(45.0f));
+
+        //rotate along global y ,local x axis
+        info.cam.front.x = cosf(glm::radians(info.cam.yaw-90))*cosf(glm::radians(info.cam.pitch));
+        info.cam.front.y = sinf(glm::radians(info.cam.pitch));
+        info.cam.front.z = sinf(glm::radians(info.cam.yaw-90))*cosf(glm::radians(info.cam.pitch));
+        //right vector in x-z plane always(no roll camera)
+        info.cam.right = glm::vec3(-info.cam.front.z,0,info.cam.front.x);
+        info.cam.up    = glm::normalize(glm::cross(info.cam.right,info.cam.front));
+
+        info.cam.pos = glm::vec3(0,0,0);
+
+    }
+
+
+    {
+        cout << glm::to_string(info.cam.front) <<endl;
+        cout << glm::to_string(info.cam.up) <<endl;
+        cout << glm::to_string(info.cam.right) <<endl;
+
+    }
+
+
+
 
 
 
@@ -127,11 +190,23 @@ void BasicScene::run() {
     glfwSetTime(last);
     while (!glfwWindowShouldClose(mainWindow)) {
 
+        double curr = glfwGetTime();
+        delta = curr-last;
+        last = curr;
+
+        glfwPollEvents();
+        update(delta);
+
+        //TODO see if lower level sync here
         //wait till prev frame done
-        checkCudaErrors(cudaThreadSynchronize());
+        checkCudaErrors(cudaStreamSynchronize(0));
 
 
-//        pass in the cudaDestResource
+        float aaa[16];
+        for(int i = 0;i<16;++i){
+            aaa[i] = i%4?0:1;
+        }
+
 
         launchKernel(info);
 
@@ -146,55 +221,12 @@ void BasicScene::run() {
         checkCudaErrors(cudaGraphicsUnmapResources(1, &cudaTexResource, 0));
 
 
-
-
-        double curr = glfwGetTime();
-        delta = curr-last;
-        last = curr;
-        glfwPollEvents();
-
-        update(delta);
         draw();
 
         glfwSwapBuffers(mainWindow);
 
     }
 
-//
-//    // map vertex buffer object for acces by CUDA
-//    cudaGLMapBufferObject((void**)&dptr, vbo);
-//
-//    //clear all pixels:
-
-//
-//    // RAY TRACING:
-//    launchKernel(info);
-//     dim3 grid(WINDOW / block.x, WINDOW / block.y, 1);
-//     dim3 CUDA specific syntax, block and grid are required to schedule CUDA threads over streaming multiprocessors
-//    dim3 block(16, 16, 1);
-//    dim3 grid(width / block.x, height / block.y, 1);
-//
-//    // launch CUDA path tracing kernel, pass in a hashed seed based on number of frames
-//    render_kernel << < grid, block >> >(dptr, accumulatebuffer, total_number_of_triangles, frames, WangHash(frames), scene_aabbox_max, scene_aabbox_min);  // launches CUDA render kernel from the host
-//
-//    cudaThreadSynchronize();
-//
-//    // unmap buffer
-//    cudaGLUnmapBufferObject(vbo);
-//    //glFlush();
-
-
-
-//    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-//    glVertexPointer(2, GL_FLOAT, 12, 0);
-//    glColorPointer(4, GL_UNSIGNED_BYTE, 12, (GLvoid*)8);
-//
-//    glEnableClientState(GL_VERTEX_ARRAY);
-//    glEnableClientState(GL_COLOR_ARRAY);
-//    glDrawArrays(GL_POINTS, 0, width * height);
-//    glDisableClientState(GL_VERTEX_ARRAY);
-//
-//    glutSwapBuffers();
 
 }
 
@@ -225,11 +257,32 @@ void scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
 
 void BasicScene::update(double delta) {
 
+//    info.cam.camVecs[0];
+//    float camSpeed = 3.0f*(float)delta;
+//    if(glfwGetKey(mainWindow,GLFW_KEY_W)){
+//
+//        cam.position+=cam.front*camSpeed;
+//    }
+//    if(glfwGetKey(mainWindow,GLFW_KEY_A)){
+//        cam.position-=cam.right*camSpeed;
+//    }
+//    if(glfwGetKey(mainWindow,GLFW_KEY_S)){
+//        cam.position-=cam.front*camSpeed;
+//    }
+//    if(glfwGetKey(mainWindow,GLFW_KEY_D)){
+//        cam.position+=cam.right*camSpeed;
+//    }
+
+
+
+
+
 }
 
 void BasicScene::draw() {
 
 
+    glClearColor(0.5,0.0,0.0,0.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
 
@@ -237,6 +290,7 @@ void BasicScene::draw() {
 
     glBindTexture(GL_TEXTURE_2D, renderQuad.tex);
     glActiveTexture(GL_TEXTURE0);
+
     glUniform1i(renderQuad.texUniform, 0);
 
     glBindVertexArray(renderQuad.vao);
