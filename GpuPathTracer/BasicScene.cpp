@@ -13,6 +13,9 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
+
+
+float MouseSensitivity = 0.25f;
 //quad positions in NDC Space
 GLfloat quadVertices[20] = {
         // Positions  // Texture Coords
@@ -22,7 +25,30 @@ GLfloat quadVertices[20] = {
         1.0f, -1.0f,  0.99f, 1.0f, 0.0f,
 };
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
-BasicScene::BasicScene(int width, int height, const std::string &title):width(width),height(height){
+void setPitchAndRoll(CamInfo & cam,float xoffset, float yoffset){
+    xoffset *= MouseSensitivity;
+    yoffset *= MouseSensitivity;
+
+    cam.yaw   += xoffset;
+    cam.pitch += yoffset;
+
+
+
+    if (cam.pitch > 89.0f)
+        cam.pitch = 89.0f;
+    if (cam.pitch < -89.0f)
+        cam.pitch = -89.0f;
+
+
+    //rotate along global y ,local x axis
+    cam.front.x = cosf(glm::radians(cam.yaw-90))*cosf(glm::radians(cam.pitch));
+    cam.front.y = sinf(glm::radians(cam.pitch));
+    cam.front.z = sinf(glm::radians(cam.yaw-90))*cosf(glm::radians(cam.pitch));
+    //right vector in x-z plane always(no roll camera)
+    cam.right = glm::vec3(-cam.front.z,0,cam.front.x);
+    cam.up    = glm::normalize(glm::cross(cam.right,cam.front));
+}
+BasicScene::BasicScene(int width, int height, const std::string &title):width(width),height(height),updater(*this){
 
     using std::cout;
     using std::endl;
@@ -174,6 +200,10 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
 
 
+    {
+
+    }
+
 
 
 
@@ -255,26 +285,48 @@ void scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
 
 }
 
+void BasicScene::Updater::operator()(double delta) {
+
+    float camSpeed = 300.0f*(float)delta;
+
+    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_W)){
+
+        prtScn.info.cam.pos+=prtScn.info.cam.front*camSpeed;
+    }
+    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_A)){
+        prtScn.info.cam.pos-=prtScn.info.cam.right*camSpeed;
+    }
+    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_S)){
+        prtScn.info.cam.pos-=prtScn.info.cam.front*camSpeed;
+    }
+    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_D)){
+        prtScn.info.cam.pos+=prtScn.info.cam.right*camSpeed;
+    }
+
+    double xPos,yPos;
+    glfwGetCursorPos(prtScn.mainWindow,&xPos,&yPos);
+    if(firstMouse){
+        firstMouse = false;
+        lastX = xPos;
+        lastY = yPos;
+    }
+    float offsetX = float(xPos-lastX);
+    float offsetY = float(yPos-lastY);
+    lastX = xPos;
+    lastY = yPos;
+
+
+    setPitchAndRoll(prtScn.info.cam,offsetX,offsetY);
+
+
+
+
+}
+
 void BasicScene::update(double delta) {
 
-//    info.cam.camVecs[0];
-//    float camSpeed = 3.0f*(float)delta;
-//    if(glfwGetKey(mainWindow,GLFW_KEY_W)){
-//
-//        cam.position+=cam.front*camSpeed;
-//    }
-//    if(glfwGetKey(mainWindow,GLFW_KEY_A)){
-//        cam.position-=cam.right*camSpeed;
-//    }
-//    if(glfwGetKey(mainWindow,GLFW_KEY_S)){
-//        cam.position-=cam.front*camSpeed;
-//    }
-//    if(glfwGetKey(mainWindow,GLFW_KEY_D)){
-//        cam.position+=cam.right*camSpeed;
-//    }
 
-
-
+    updater(delta);
 
 
 }

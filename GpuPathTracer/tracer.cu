@@ -41,14 +41,16 @@ __global__ void cudaProcess(const kernelInfo info){
     int w = info.width;
     int h = info.height;
     if(x == 0 && y ==0 ) {
-        //TODO keep this function
+        //TODO keep this function and disable it
         printf("received vars\n");
         printf("%f\n",info.cam.dist);
         printf("%f\n",info.cam.fov);
         printf("%f\n",info.cam.aspect);
-
         printf("%d\n",info.width);
         printf("%d\n",info.height);
+
+        printf("cam width %f\n",info.cam.dist*info.cam.aspect*info.cam.fov);
+
 
     }
     if(x>=w || y>=h)
@@ -63,10 +65,12 @@ __global__ void cudaProcess(const kernelInfo info){
 
 
 
+
     //sphere test
     {
 
-        Sphere sp(20*4.99985f,vec3(0.0f, 0,-100),vec3(0,0,0),vec3(0.9f, 0.9f, 0.9f ), DIFF);
+        float rad= 300/(sqrt(2.0f)-1);
+        Sphere sp(rad/2,vec3(0.0f, 0,-rad-h/2),vec3(0,0,0),vec3(0.9f, 0.9f, 0.9f ), DIFF);
         float dist = sp.intersect(camRay);
 //        if(dist >0 ){
 //            printf("%d %d\n",x,y);
@@ -87,7 +91,7 @@ __global__ void cudaProcess(const kernelInfo info){
 #include <iostream>
 void BasicScene::launchKernel(const kernelInfo &info) {
 
-    using namespace std;
+//    using namespace std;
 //    cout << width <<" " << height << endl;
 
 

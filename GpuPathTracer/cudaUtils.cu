@@ -84,12 +84,12 @@ __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const
     //objects need to have negative coords relative to camera
     const int xStep = (px - w/2.0f + 0.5)*cam.dist*cam.aspect*cam.fov/w;
     const int yStep = (py - h/2.0f + 0.5)*cam.dist*cam.fov/h;
-    glm::vec3 dir = cam.front+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep);
+    glm::vec3 dir = cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep);
     //TODO normalize these vectors
 
 
 
-    return Ray(cam.pos,normalize(dir));
+    return Ray(cam.pos+dir,normalize(dir));
 
 
 
