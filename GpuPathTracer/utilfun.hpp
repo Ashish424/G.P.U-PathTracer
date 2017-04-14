@@ -11,6 +11,8 @@
 #include <iostream>
 #include <string>
 #include <cuda_runtime.h>
+#include <thrust/host_vector.h>
+
 class GLFWwindow;
 
 namespace uf {
@@ -39,6 +41,11 @@ namespace uf {
     GLuint compileShader(const shDf & sd);
     GLuint compileShader(const shDf & sd);
     GLuint makeProgram(GLuint vS,GLuint fS,bool deleteDetachShaders);
+
+
+    //TODO make this a struct with bounding box and other stuff
+    //load obj objects
+    thrust::host_vector<float4> loadTris(const char * filename);
 
 }
 #endif //GPUPROJECT_UTILS_HPP

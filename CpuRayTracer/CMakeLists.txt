@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 #TODO decide to keep project here or not
 project(CpuRayTracer)
-#add_executable(testQT main.cpp Scene.cpp Scene.hpp ${DEPS_SOURCES})
-#target_link_libraries(testQT assimp glraw  Qt5::Widgets ${PLATFORM_LINK})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-narrowing -march=native -m64 -O3  -funroll-loops")
 FIND_PACKAGE( OpenMP REQUIRED)
@@ -28,7 +26,7 @@ set(SOURCE_FILES
         lib/tiny_obj_loader/tiny_obj_loader.cc)
 file(GLOB SOURCE_HEADERS "src/*.hpp")
 
-add_executable(pathtracer ${SOURCE_FILES} ${SOURCE_HEADERS} ${DEPS_SOURCES})
+add_executable(pathtracer ${SOURCE_FILES} ${SOURCE_HEADERS}  ${DEPS_SOURCES})
 target_link_libraries(pathtracer glfw ${GLFW_LIBRARIES} -ldl )
 # copy shader files to build directory
 file(GLOB OBJECTS

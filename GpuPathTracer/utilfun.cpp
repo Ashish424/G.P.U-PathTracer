@@ -6,6 +6,8 @@
 #include <cassert>
 #include <GLFW/glfw3.h>
 #include <fstream>
+#include <tiny_obj_loader.h>
+#include "cutil_math.h"
 #include <iostream>
 #include <cuda_runtime_api.h>
 #include <cuda_gl_interop.h>
@@ -144,6 +146,66 @@ namespace uf {
             glDetachShader(sp,fS);glDeleteShader(fS);
         }
         return sp;
+    }
+
+    thrust::host_vector<float4> loadTris(const char *filename) {
+
+        thrust::host_vector<float4> triVec;
+
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+
+        std::string err;
+        tinyobj::attrib_t attribs;
+        bool ret = tinyobj::LoadObj(&attribs,&shapes, &materials, &err, filename);
+
+        if (!err.empty()) { // `err` may contain warning message.
+            std::cout << err << std::endl;
+        }
+
+        if (!ret) {
+            std::cout << "error in tinyObj"<< std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        //TODO disable this debugging info later
+        std::cout << "# of shapes    : " << shapes.size() << std::endl;
+        std::cout << "# of indexes    : " << shapes[0].mesh.indices.size() << std::endl;
+        std::cout << "# of materials : " << materials.size() << std::endl;
+        std::cout << "# of verts : " << attribs.vertices.size() << std::endl;
+
+
+        for (size_t i = 0; i < attribs.vertices.size()/3; ++i) {
+            cout << attribs.vertices[i] << attribs.vertices[i+1] << attribs.vertices[i+2] << endl;
+
+        }
+
+        for (size_t i = 0; i < shapes.size(); ++i) {
+            assert((shapes[i].mesh.indices.size() % 3) == 0);
+            for (size_t f = 0; f < shapes[i].mesh.indices.size() / 3; ++f) {
+
+                float4 currTri[3];
+                float4 off = make_float4(0,0,-350,0);
+                for(size_t k = 0;k<3;++k){
+
+                    float vX = attribs.vertices[shapes[i].mesh.indices[3*f+k].vertex_index*3];
+                    float vY = attribs.vertices[shapes[i].mesh.indices[3*f+k].vertex_index*3+1];
+                    float vZ = attribs.vertices[shapes[i].mesh.indices[3*f+k].vertex_index*3+2];
+                    currTri[k] = make_float4(vX,vY,vZ,1);
+                    currTri[k]+=off;
+
+                }
+
+                triVec.push_back(make_float4(currTri[0].x, currTri[0].y, currTri[0].z, 0));
+                triVec.push_back(make_float4(currTri[1].x - currTri[0].x, currTri[1].y - currTri[0].y, currTri[1].z - currTri[0].z, 0));
+                triVec.push_back(make_float4(currTri[2].x - currTri[0].x, currTri[2].y - currTri[0].y, currTri[2].z - currTri[0].z, 0));
+
+            }
+        }
+        return triVec;
+
+
+
     }
 }
 

@@ -11,22 +11,21 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_SOURCE_DIR}/bin)
 #set(CMAKE_AUTOMOC ON)
 #set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Qt5Widgets REQUIRED )
-find_package(Qt5OpenGL REQUIRED )
+#find_package(Qt5Widgets REQUIRED )
+#find_package(Qt5OpenGL REQUIRED )
 
 #find_package(Qt5Core REQUIRED )
 #find_package(Qt5Gui REQUIRED )
 #use cuda on linux only
-if(UNIX)
+
 find_package(CUDA REQUIRED)
 MESSAGE( STATUS "cuda toolkit location" ${CUDA_TOOLKIT_ROOT_DIR} )
-endif(UNIX)
-MESSAGE( STATUS "QT5 widgets version " ${Qt5Widgets_VERSION})
+#MESSAGE( STATUS "QT5 widgets version " ${Qt5Widgets_VERSION})
 #MESSAGE( STATUS "QT5 Core location " ${Qt5Core_DIR})
 
 
 
-
+#TODO delete assimp if not used fr
 #add assimp library
 #option(ASSIMP_BUILD_ASSIMP_TOOLS "" OFF)
 #option(ASSIMP_BUILD_SAMPLES "" OFF)
@@ -50,16 +49,30 @@ include_directories(
         "deps/glad/include"
         "deps/glfw/include"
         "deps/glm"
+        "deps/tinyobjloader"
 #)
         #"deps/assimp/include"
         "deps/glraw/source/glraw")
 
 file(GLOB DEPS_SOURCES deps/glad/src/glad.c)
+file(GLOB TINY_OBJ_SOURCE deps/tinyobjloader/*)
+#file(GLOB IMGUI_SOURCE
+#        deps/imgui/*.h
+#        deps/imgui/*.cpp
+#        )
+
+
+set(DEPS_SOURCES ${DEPS_SOURCES})
 
 if(CUDA_FOUND)
     #TODO see these flags
+
+    set(CUDA_NVCC_FLAGS "-std=c++11")
+    if(UNIX)
+        set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -ccbin /usr/bin/gcc-4.9;")
+    endif(UNIX)
     set(CUDA_NVCC_FLAGS "
-  -ccbin /usr/bin/gcc-4.9;
+    ${CUDA_NVCC_FLAGS}
 #  -gencode;arch=compute_30,code=sm_30;
 #  -gencode;arch=compute_35,code=sm_35;
 #  -gencode;arch=compute_35,code=compute_35;

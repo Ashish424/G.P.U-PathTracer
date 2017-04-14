@@ -10,8 +10,11 @@
 #include <cuda_gl_interop.h>
 #include <cstring>
 #include <glm/gtc/type_ptr.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
+//#define GLM_ENABLE_EXPERIMENTAL
+//#include <glm/gtx/string_cast.hpp>
+
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
 
 
 
@@ -62,7 +65,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     mainWindow = uf::createWindow(width,height,title.c_str());
     if(mainWindow == nullptr){
         cout <<"failed to create glfw window,exiting" << endl;
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     glfwMakeContextCurrent(mainWindow);
     //additonal glfw setup
@@ -76,16 +79,16 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
     if(!uf::initGlad()){
         cout <<"failed to init glad,exiting" << endl;
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     //cuda init
     int dId;
     if((dId = uf::findCudaDevice()) < 0){
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
-    //setup texture
+    //setup draw texture
     {
         //TODO something unregister maybe
         renderQuad.tex = uf::createGlTex2DCuda(width, height);
@@ -130,42 +133,57 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         //TODO pinned memory
         checkCudaErrors(cudaMalloc((void **)&cudaDestResource, size_tex_data));
     }
+    //TODO deletions here too
+
+    size_t numTris = 0;
+    //cuda texture for triangles
+    {
+        using glm::vec4;
+
+        thrust::host_vector<float4> cpuTris1(uf::loadTris("./cube.obj"));
+        cout << "num verts: " << cpuTris1.size()<< endl;
+
+//        thrust::host_vector<vec4> cpuTris1(uf::loadTris("filename.obj"));
+//        thrust::host_vector<vec4> cpuTris2(uf::loadTris("filename.obj"));
+//        thrust::host_vector<float4> cpuTris1(800*600);
+//        thrust::host_vector<vec4> cpuTris2(1000);
+//        for(size_t i = 0;i<cpuTris1.size();++i){
+//            cpuTris1[i] = make_float4(rand()/(float)RAND_MAX,rand()/(float)RAND_MAX,rand()/(float)RAND_MAX,rand()/(float)RAND_MAX);
+//        }
+
+//        cpuTris1.insert(cpuTris1.end(), cpuTris2.begin(), cpuTris2.end());
+
+        //TODO see if pinned memory here
+        cudaMalloc(&gpuTris,sizeof(float4)*cpuTris1.size());
+        cudaMemcpy(gpuTris,thrust::raw_pointer_cast(&cpuTris1[0]),sizeof(float4)*cpuTris1.size(),cudaMemcpyHostToDevice);
+
+
+
+
+        trianglesTex.desc.resType = cudaResourceTypeLinear;
+        trianglesTex.desc.res.linear.devPtr = thrust::raw_pointer_cast(&gpuTris[0]);
+        trianglesTex.desc.res.linear.desc = cudaCreateChannelDesc<float4>();
+        trianglesTex.desc.res.linear.sizeInBytes = sizeof(float4)*cpuTris1.size();
+
+
+        memset(&trianglesTex.texDesc, 0, sizeof(trianglesTex.texDesc));
+        trianglesTex.textureObject = 0;
+        trianglesTex.texDesc.filterMode = cudaFilterModePoint;
+        trianglesTex.texDesc.normalizedCoords = 0;
+        trianglesTex.texDesc.addressMode[0] = cudaAddressModeWrap;
+
+        cudaCreateTextureObject(&trianglesTex.textureObject, &trianglesTex.desc, &trianglesTex.texDesc, NULL);
+
+        numTris = cpuTris1.size();
+    }
     //kernel default parameters
     {
         info.dev_drawRes = cudaDestResource;
         info.width = width;
         info.height = height;
         info.blockSize = dim3(16,16,1);
-    }
-    //TODO remove this hardcoding
-    //load up mesh
-    {
-
-    }
-    //TODO deletions here too
-    {
-//        float *buffer;
-//        cudaMalloc(&buffer, N*sizeof(float));
-//
-//        // create texture object
-//        cudaResourceDesc resDesc;
-//        memset(&resDesc, 0, sizeof(resDesc));
-//        resDesc.resType = cudaResourceTypeLinear;
-//        resDesc.res.linear.devPtr = buffer;
-//        resDesc.res.linear.desc.f = cudaChannelFormatKindFloat;
-//        resDesc.res.linear.desc.x = 32; // bits per channel
-//        resDesc.res.linear.sizeInBytes = N*sizeof(float);
-//
-//        cudaTextureDesc texDesc;
-//        memset(&texDesc, 0, sizeof(texDesc));
-//        texDesc.readMode = cudaReadModeElementType;
-//
-//        // create texture object: we only have to do this once!
-//        cudaTextureObject_t tex=0;
-//        cudaCreateTextureObject(&tex, &resDesc, &texDesc, NULL);
-//
-//        call_kernel(tex); // pass texture as argument
-
+        info.triangleTex = trianglesTex.textureObject;
+        info.numTris = numTris;
     }
 
     //setup camera
@@ -185,18 +203,11 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         //right vector in x-z plane always(no roll camera)
         info.cam.right = glm::vec3(-info.cam.front.z,0,info.cam.front.x);
         info.cam.up    = glm::normalize(glm::cross(info.cam.right,info.cam.front));
-
         info.cam.pos = glm::vec3(0,0,0);
 
     }
 
 
-    {
-        cout << glm::to_string(info.cam.front) <<endl;
-        cout << glm::to_string(info.cam.up) <<endl;
-        cout << glm::to_string(info.cam.right) <<endl;
-
-    }
 
 
 
@@ -210,6 +221,14 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 }
 
 BasicScene::~BasicScene() {
+
+
+    //destroy triangles texture
+    {
+        checkCudaErrors(cudaDestroyTextureObject(trianglesTex.textureObject));
+        checkCudaErrors(cudaFree(gpuTris));
+
+    }
 
     glfwTerminate();
 }
@@ -232,10 +251,7 @@ void BasicScene::run() {
         checkCudaErrors(cudaStreamSynchronize(0));
 
 
-        float aaa[16];
-        for(int i = 0;i<16;++i){
-            aaa[i] = i%4?0:1;
-        }
+
 
 
         launchKernel(info);

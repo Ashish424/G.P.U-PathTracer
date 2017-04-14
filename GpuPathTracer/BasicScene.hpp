@@ -9,9 +9,21 @@
 #include <string>
 #include <vector_types.h>
 #include <glm/glm.hpp>
+#include <cstring>
 
 class GLFWwindow;
+struct tex1DInfo{
+    void                   *h_data;
+    cudaResourceDesc desc;
+    cudaTextureDesc texDesc;
+    cudaTextureObject_t     textureObject;
 
+    tex1DInfo()
+    {
+        memset(this,0,sizeof(tex1DInfo));
+    }
+
+};
 struct CamInfo{
     glm::vec3 front,right,up,pos;
     float dist;
@@ -26,6 +38,9 @@ struct kernelInfo{
     unsigned int * dev_drawRes;
     int width,height;
     CamInfo cam;
+    cudaTextureObject_t triangleTex;
+    size_t numTris = 0;
+
 };
 class BasicScene{
 public:
@@ -47,16 +62,21 @@ private:
 
 
 private:
+    //opengl stuff
     GLFWwindow * mainWindow;
     struct Quad{
        GLuint tex,vao,vbo,program;GLint texUniform;
     }renderQuad;
     struct cudaGraphicsResource *cudaTexResource;
-    //the cuda image to use
+
+
+    //the cuda image to use for drawing
     unsigned int * cudaDestResource;
     int width,height;
 
-
+    //cuda triangles texture
+    tex1DInfo trianglesTex;
+    float4 * gpuTris = nullptr;
 private:
 
     void update(double delta);

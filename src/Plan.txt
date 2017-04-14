@@ -1,17 +1,18 @@
 add cuda timer events
 build basic cuda path tracer
+coheleased memory access using float4
 use thrust for various datastructures
+Correct Aliasing issues
 use cuda streams
 add support for data structures(BVH)
 add support for FPS display
 profile with nvidia profiler
 Make sure no printing inside critical loops
-Experiment withg different data types
-
+Experiment with different data types
+Cleanup code and commented stuff
 
 
 GUI Design
-=>basic Camera Controls
 =>optimize packing data for efficient retrival on GPU
 
 =>Cuda controls(Ray depth,Samples,block size)
@@ -27,5 +28,5 @@ Report additions
 
 
 
-
+[DONE]Basic RayTracing and Camera Setup
 [DONE]setup cuda and opengl interop
