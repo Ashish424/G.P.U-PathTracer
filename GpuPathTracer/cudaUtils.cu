@@ -51,7 +51,7 @@ __device__ glm::vec4 f4tov(const float4 & f4);
 __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const int w,const int h);
 __device__ float3 getTriangleNormal(const cudaTextureObject_t & tex,const size_t triangleIndex);
 __device__ float RayTriangleIntersection(const Ray &r,const float3 &v0,const float3 &edge1,const float3 &edge2);
-__device__ void intersectAllTriangles(const cudaTextureObject_t & tex,const Ray& r, float& t_scene, int& triangle_id, const size_t numTris, int& geomtype);
+__device__ void intersectAllTriangles(const float4 * tex,const Ray& r, float& t_scene, int& triangle_id, const size_t numTris, int& geomtype);
 
 
 
@@ -143,7 +143,7 @@ __device__ float RayTriangleIntersection(const Ray &r,
     return dot(edge2, qvec) * det;
 }
 
-__device__ void intersectAllTriangles(const cudaTextureObject_t & tex,const Ray& r, float& t_scene, size_t & triangle_id, const size_t numTris, int& geomtype){
+__device__ void intersectAllTriangles(const float4 * tex ,const Ray& r, float& t_scene, size_t & triangle_id, const size_t numTris, int& geomtype){
 
     for (size_t i = 0; i < numTris; i++)
     {
@@ -152,9 +152,9 @@ __device__ void intersectAllTriangles(const cudaTextureObject_t & tex,const Ray&
         // (float4(vertex.x,vertex.y,vertex.z, 0), float4 (egde1.x,egde1.y,egde1.z,0),float4 (egde2.x,egde2.y,egde2.z,0))
 
         // i is triangle index, each triangle represented by 3 float4s in triangle_texture
-        float4 v0    = tex1Dfetch<float4>(tex, i * 3);
-        float4 edge1 = tex1Dfetch<float4>(tex, i * 3 + 1);
-        float4 edge2 = tex1Dfetch<float4>(tex, i * 3 + 2);
+        float4 v0    = tex[ i * 3];
+        float4 edge1 = tex[i * 3 + 1];
+        float4 edge2 = tex[i * 3 + 2];
 
 //        // intersect ray with reconstructed triangle
         float t = RayTriangleIntersection(r,make_float3(v0.x, v0.y, v0.z),

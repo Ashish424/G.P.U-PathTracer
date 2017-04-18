@@ -38,7 +38,7 @@ __global__ void cudaProcess(const kernelInfo info){
     uint x = blockIdx.x*bw + tx;
     uint y = blockIdx.y*bh + ty;
     size_t pixelPos = y*info.width+x;
-    const cudaTextureObject_t & triTex = info.triangleTex;
+    const float4 * const triTex = info.triangleTex;
     const size_t triTexSize = info.numTris;
     int w = info.width;
     int h = info.height;
@@ -111,19 +111,19 @@ __global__ void cudaProcess(const kernelInfo info){
 
 
     //sphere test
-    {
-
+//    {
+//
 //        float rad= 300/(sqrt(2.0f)-1);
 //        Sphere sp(rad/2,make_float3(0.0f, 0,-rad-h/2),make_float3(0,0,0),make_float3(0.9f, 0.9f, 0.9f ), DIFF);
 //        float dist = sp.intersect(camRay);
 //
 //        if(dist > 0 ){
-//            r = 255;
-//            g = 0;
+//            r = 0;
+//            g = 255;
 //            b = 0;
 //            a = 255;
 //        }
-    }
+//    }
 
 
     uchar4 c4 = make_uchar4(r, g, b, a);

@@ -38,7 +38,7 @@ struct kernelInfo{
     unsigned int * dev_drawRes;
     int width,height;
     CamInfo cam;
-    cudaTextureObject_t triangleTex;
+    float4 *  triangleTex = nullptr;
     size_t numTris = 0;
 
 };
