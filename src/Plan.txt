@@ -14,10 +14,9 @@ Cleanup code and commented stuff
 
 GUI Design
 =>optimize packing data for efficient retrival on GPU
-
 =>Cuda controls(Ray depth,Samples,block size)
 Interactive Samples,Interactive Depth
-
+=>Display stuff like kernel execution time,texture mapping
 =>Gl controls(Fog)
 
 Report additions

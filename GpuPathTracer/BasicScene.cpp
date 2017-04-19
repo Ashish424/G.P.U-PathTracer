@@ -210,14 +210,6 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
 
 
-
-    {
-
-    }
-
-
-
-
 }
 
 BasicScene::~BasicScene() {
@@ -253,8 +245,14 @@ void BasicScene::run() {
 
 
 
+        uf::GpuTimer g;
+        g.Start();
 
         launchKernel(info);
+
+        g.Stop();
+        std::cout << g.Elapsed() << std::endl;
+
 
         cudaArray *texturePtr = nullptr;
         checkCudaErrors(cudaGraphicsMapResources(1, &cudaTexResource, 0));
@@ -356,6 +354,7 @@ void BasicScene::draw() {
 
     glUseProgram(renderQuad.program);
 
+    //TODO optimize on this binding calls just bind them once since this the only opengl thing you do
     glBindTexture(GL_TEXTURE_2D, renderQuad.tex);
     glActiveTexture(GL_TEXTURE0);
 
