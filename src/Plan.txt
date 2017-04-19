@@ -1,7 +1,10 @@
 add cuda timer events
+(cuda protips)https://devblogs.nvidia.com/parallelforall/category/cuda-pro-tip/
 build basic cuda path tracer
 coheleased memory access using float4
 use thrust for various datastructures
+See if time permits construction on GPU
+https://devblogs.nvidia.com/parallelforall/thinking-parallel-part-iii-tree-construction-gpu/
 Correct Aliasing issues
 use cuda streams
 add support for data structures(BVH)
@@ -23,9 +26,8 @@ Report additions
 =>Basic GPU implementation(=>recursion overhead avoided with loops)
 =>Speedup curves
 =>timing data for kernels and total gpu time and cpu comparisions
+=>Speedup should be shown with 2-3 methods and graphs to accompany
 
-
-
-
-[DONE]Basic RayTracing and Camera Setup
+[DONE]tried texture memory
 [DONE]setup cuda and opengl interop
+[DONE]Basic RayTracing and Camera Setup

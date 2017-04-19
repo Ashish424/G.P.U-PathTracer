@@ -12,6 +12,7 @@
 #include <string>
 #include <cuda_runtime.h>
 #include <thrust/host_vector.h>
+#include <glm/vec4.hpp>
 
 class GLFWwindow;
 
@@ -53,15 +54,6 @@ namespace uf {
         }
     };
 
-
-
-
-
-
-
-
-
-
     template<typename T>
     void check(T err, const char* const func, const char* const file, const int line) {
         if (err != cudaSuccess) {
@@ -91,7 +83,7 @@ namespace uf {
 
     //TODO make this a struct with bounding box and other stuff
     //load obj objects
-    thrust::host_vector<float4> loadTris(const char * filename);
+    thrust::host_vector<glm::vec4> loadTris(const char *filename);
 
 }
 #endif //GPUPROJECT_UTILS_HPP

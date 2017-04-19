@@ -140,7 +140,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
         using glm::vec4;
 
-        thrust::host_vector<float4> cpuTris1(uf::loadTris("./cube.obj"));
+        thrust::host_vector<vec4> cpuTris1(uf::loadTris("./cube.obj"));
         cout << "num verts: " << cpuTris1.size()<< endl;
 
 //        thrust::host_vector<vec4> cpuTris1(uf::loadTris("filename.obj"));
@@ -154,25 +154,25 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 //        cpuTris1.insert(cpuTris1.end(), cpuTris2.begin(), cpuTris2.end());
 
         //TODO see if pinned memory here
-        cudaMalloc(&gpuTris,sizeof(float4)*cpuTris1.size());
-        cudaMemcpy(gpuTris,thrust::raw_pointer_cast(&cpuTris1[0]),sizeof(float4)*cpuTris1.size(),cudaMemcpyHostToDevice);
+        cudaMalloc(&gpuTris,sizeof(vec4)*cpuTris1.size());
+        cudaMemcpy(gpuTris,thrust::raw_pointer_cast(&cpuTris1[0]),sizeof(vec4)*cpuTris1.size(),cudaMemcpyHostToDevice);
 
 
 
 
-        trianglesTex.desc.resType = cudaResourceTypeLinear;
-        trianglesTex.desc.res.linear.devPtr = thrust::raw_pointer_cast(&gpuTris[0]);
-        trianglesTex.desc.res.linear.desc = cudaCreateChannelDesc<float4>();
-        trianglesTex.desc.res.linear.sizeInBytes = sizeof(float4)*cpuTris1.size();
+//        trianglesTex.desc.resType = cudaResourceTypeLinear;
+//        trianglesTex.desc.res.linear.devPtr = thrust::raw_pointer_cast(&gpuTris[0]);
+//        trianglesTex.desc.res.linear.desc = cudaCreateChannelDesc<float4>();
+//        trianglesTex.desc.res.linear.sizeInBytes = sizeof(float4)*cpuTris1.size();
+//
 
+//        memset(&trianglesTex.texDesc, 0, sizeof(trianglesTex.texDesc));
+//        trianglesTex.textureObject = 0;
+//        trianglesTex.texDesc.filterMode = cudaFilterModePoint;
+//        trianglesTex.texDesc.normalizedCoords = 0;
+//        trianglesTex.texDesc.addressMode[0] = cudaAddressModeWrap;
 
-        memset(&trianglesTex.texDesc, 0, sizeof(trianglesTex.texDesc));
-        trianglesTex.textureObject = 0;
-        trianglesTex.texDesc.filterMode = cudaFilterModePoint;
-        trianglesTex.texDesc.normalizedCoords = 0;
-        trianglesTex.texDesc.addressMode[0] = cudaAddressModeWrap;
-
-        cudaCreateTextureObject(&trianglesTex.textureObject, &trianglesTex.desc, &trianglesTex.texDesc, NULL);
+//        cudaCreateTextureObject(&trianglesTex.textureObject, &trianglesTex.desc, &trianglesTex.texDesc, NULL);
 
         numTris = cpuTris1.size();
     }
@@ -182,7 +182,8 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         info.width = width;
         info.height = height;
         info.blockSize = dim3(16,16,1);
-        info.triangleTex = trianglesTex.textureObject;
+        info.triangleTex = gpuTris;
+//        info.triangleTex = trianglesTex.textureObject;
         info.numTris = numTris;
     }
 
@@ -248,11 +249,11 @@ void BasicScene::run() {
         uf::GpuTimer g;
         g.Start();
 
-        launchKernel(info);
 
+
+        launchKernel(info);
         g.Stop();
         std::cout << g.Elapsed() << std::endl;
-
 
         cudaArray *texturePtr = nullptr;
         checkCudaErrors(cudaGraphicsMapResources(1, &cudaTexResource, 0));

@@ -38,7 +38,7 @@ struct kernelInfo{
     unsigned int * dev_drawRes;
     int width,height;
     CamInfo cam;
-    cudaTextureObject_t triangleTex;
+    glm::vec4 *  triangleTex = nullptr;
     size_t numTris = 0;
 
 };
@@ -47,11 +47,7 @@ public:
     BasicScene(int width, int height, const std::string &title);
     ~BasicScene();
     void run();
-
-
     kernelInfo info;
-
-
 
 private:
     friend void mousePosCallback(GLFWwindow * window,double posX,double posY);
@@ -76,7 +72,7 @@ private:
 
     //cuda triangles texture
     tex1DInfo trianglesTex;
-    float4 * gpuTris = nullptr;
+    glm::vec4 * gpuTris = nullptr;
 private:
 
     void update(double delta);
