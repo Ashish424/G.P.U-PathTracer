@@ -148,9 +148,11 @@ namespace uf {
         return sp;
     }
 
-    thrust::host_vector<float4> loadTris(const char *filename) {
+    using glm::vec4;
 
-        thrust::host_vector<float4> triVec;
+    thrust::host_vector<vec4> loadTris(const char *filename) {
+
+        thrust::host_vector<vec4> triVec;
 
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
@@ -196,9 +198,9 @@ namespace uf {
 
                 }
 
-                triVec.push_back(make_float4(currTri[0].x, currTri[0].y, currTri[0].z, 0));
-                triVec.push_back(make_float4(currTri[1].x - currTri[0].x, currTri[1].y - currTri[0].y, currTri[1].z - currTri[0].z, 0));
-                triVec.push_back(make_float4(currTri[2].x - currTri[0].x, currTri[2].y - currTri[0].y, currTri[2].z - currTri[0].z, 0));
+                triVec.push_back(vec4(currTri[0].x, currTri[0].y, currTri[0].z, 0));
+                triVec.push_back(vec4(currTri[1].x - currTri[0].x, currTri[1].y - currTri[0].y, currTri[1].z - currTri[0].z, 0));
+                triVec.push_back(vec4(currTri[2].x - currTri[0].x, currTri[2].y - currTri[0].y, currTri[2].z - currTri[0].z, 0));
 
             }
         }

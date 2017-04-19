@@ -140,7 +140,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
         using glm::vec4;
 
-        thrust::host_vector<float4> cpuTris1(uf::loadTris("./cube.obj"));
+        thrust::host_vector<vec4> cpuTris1(uf::loadTris("./cube.obj"));
         cout << "num verts: " << cpuTris1.size()<< endl;
 
 //        thrust::host_vector<vec4> cpuTris1(uf::loadTris("filename.obj"));
@@ -154,8 +154,8 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 //        cpuTris1.insert(cpuTris1.end(), cpuTris2.begin(), cpuTris2.end());
 
         //TODO see if pinned memory here
-        cudaMalloc(&gpuTris,sizeof(float4)*cpuTris1.size());
-        cudaMemcpy(gpuTris,thrust::raw_pointer_cast(&cpuTris1[0]),sizeof(float4)*cpuTris1.size(),cudaMemcpyHostToDevice);
+        cudaMalloc(&gpuTris,sizeof(vec4)*cpuTris1.size());
+        cudaMemcpy(gpuTris,thrust::raw_pointer_cast(&cpuTris1[0]),sizeof(vec4)*cpuTris1.size(),cudaMemcpyHostToDevice);
 
 
 
@@ -254,9 +254,11 @@ void BasicScene::run() {
 
 
 
-
+        uf::GpuTimer g;
+        g.Start();
         launchKernel(info);
-
+        g.Stop();
+        std::cout << g.Elapsed() << std::endl;
         cudaArray *texturePtr = nullptr;
         checkCudaErrors(cudaGraphicsMapResources(1, &cudaTexResource, 0));
         checkCudaErrors(cudaGraphicsSubResourceGetMappedArray(&texturePtr, cudaTexResource, 0, 0));

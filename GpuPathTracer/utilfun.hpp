@@ -12,10 +12,47 @@
 #include <string>
 #include <cuda_runtime.h>
 #include <thrust/host_vector.h>
+#include <glm/vec4.hpp>
 
 class GLFWwindow;
 
 namespace uf {
+    struct GpuTimer
+    {
+        cudaEvent_t start;
+        cudaEvent_t stop;
+
+        GpuTimer()
+        {
+            cudaEventCreate(&start);
+            cudaEventCreate(&stop);
+        }
+
+        ~GpuTimer()
+        {
+            cudaEventDestroy(start);
+            cudaEventDestroy(stop);
+        }
+
+        void Start()
+        {
+            cudaEventRecord(start, 0);
+        }
+
+        void Stop()
+        {
+            cudaEventRecord(stop, 0);
+        }
+
+        float Elapsed()
+        {
+            float elapsed;
+            cudaEventSynchronize(stop);
+            cudaEventElapsedTime(&elapsed, start, stop);
+            return elapsed;
+
+        }
+    };
     template<typename T>
     void check(T err, const char* const func, const char* const file, const int line) {
         if (err != cudaSuccess) {
@@ -45,7 +82,7 @@ namespace uf {
 
     //TODO make this a struct with bounding box and other stuff
     //load obj objects
-    thrust::host_vector<float4> loadTris(const char * filename);
+    thrust::host_vector<glm::vec4> loadTris(const char *filename);
 
 }
 #endif //GPUPROJECT_UTILS_HPP

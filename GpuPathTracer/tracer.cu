@@ -38,7 +38,7 @@ __global__ void cudaProcess(const kernelInfo info){
     uint x = blockIdx.x*bw + tx;
     uint y = blockIdx.y*bh + ty;
     size_t pixelPos = y*info.width+x;
-    const float4 * const triTex = info.triangleTex;
+    const glm::vec4 * const triTex = info.triangleTex;
     const size_t triTexSize = info.numTris;
     int w = info.width;
     int h = info.height;

@@ -8,20 +8,20 @@
 
 
 using glm::vec3;
-
+using glm::vec4;
 
 
 
 
 enum Refl { DIFF, SPEC, REFR };
 struct Ray {
-    float3 origin,dir;
-    __device__ Ray(float3 o, float3 d) : origin(o), dir(d) {}
+    vec3 origin,dir;
+    __device__ Ray(vec3 o, vec3 d) : origin(o), dir(d) {}
 };
 struct Sphere {
 
     float rad;				// radius
-    float3 pos, emi, col;	// position, emission, color
+    vec3 pos, emi, col;	// position, emission, color
     Refl refl;			// reflection type (DIFFuse, SPECular, REFRactive)
 
     __device__ float intersect(const Ray &r) const { // returns distance, 0 if nohit
@@ -31,14 +31,14 @@ struct Sphere {
         // Solution x = (-b +- sqrt(b*b - 4ac)) / 2a
         // Solve t^2*d.d + 2*t*(o-p).d + (o-p).(o-p)-R^2 = 0
 
-        float3 op = pos - r.origin;  //
+        vec3 op = pos - r.origin;  //
         float t, epsilon = 0.01f;
         float b = dot(op, r.dir);
         float disc = b*b - dot(op, op) + rad*rad; // discriminant
         if (disc<0) return 0; else disc = sqrtf(disc);
         return (t = b - disc)>epsilon ? t : ((t = b + disc)>epsilon ? t : 0);
     }
-    __device__ Sphere(float rad,float3 pos,float3 emi,float3 col,Refl refl):rad(rad),pos(pos),emi(emi),col(col),refl(refl){
+    __device__ Sphere(float rad,vec3 pos,vec3 emi,vec3 col,Refl refl):rad(rad),pos(pos),emi(emi),col(col),refl(refl){
     }
 };
 
@@ -51,7 +51,7 @@ __device__ glm::vec4 f4tov(const float4 & f4);
 __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const int w,const int h);
 __device__ float3 getTriangleNormal(const cudaTextureObject_t & tex,const size_t triangleIndex);
 __device__ float RayTriangleIntersection(const Ray &r,const float3 &v0,const float3 &edge1,const float3 &edge2);
-__device__ void intersectAllTriangles(const float4 * tex,const Ray& r, float& t_scene, int& triangle_id, const size_t numTris, int& geomtype);
+__device__ void intersectAllTriangles(const vec4 * tex,const Ray& r, float& t_scene, int& triangle_id, const size_t numTris, int& geomtype);
 
 
 
@@ -94,11 +94,13 @@ __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const
     //objects need to have negative coords relative to camera
     const int xStep = (px - w/2.0f + 0.5)*cam.dist*cam.aspect*cam.fov/w;
     const int yStep = (py - h/2.0f + 0.5)*cam.dist*cam.fov/h;
-    float3 dir = vtof3(cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep));
+
+    glm::vec3 dir = cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep);
+//    float3 dir = vtof3(cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep));
 
 
     //TODO ray begins at the near plane and add random sampling here
-    return Ray(vtof3(cam.pos)+dir,normalize(dir));
+    return Ray(cam.pos+dir,normalize(dir));
 
 
 
@@ -118,12 +120,12 @@ trinormal = normalize(trinormal);
 return trinormal;
 }
 __device__ float RayTriangleIntersection(const Ray &r,
-                                         const float3 &v0,
-                                         const float3 &edge1,
-                                         const float3 &edge2){
+                                         const vec3 &v0,
+                                         const vec3 &edge1,
+                                         const vec3 &edge2){
 
-    float3 tvec = r.origin - v0;
-    float3 pvec = cross(r.dir, edge2);
+    vec3 tvec = r.origin - v0;
+    vec3 pvec = cross(r.dir, edge2);
     float  det = dot(edge1, pvec);
 
     det = __fdividef(1.0f, det);
@@ -133,7 +135,7 @@ __device__ float RayTriangleIntersection(const Ray &r,
     if (u < 0.0f || u > 1.0f)
         return -1.0f;
 
-    float3 qvec = cross(tvec, edge1);
+    vec3 qvec = cross(tvec, edge1);
 
     float v = dot(r.dir, qvec) * det;
 
@@ -143,7 +145,7 @@ __device__ float RayTriangleIntersection(const Ray &r,
     return dot(edge2, qvec) * det;
 }
 
-__device__ void intersectAllTriangles(const float4 * tex ,const Ray& r, float& t_scene, size_t & triangle_id, const size_t numTris, int& geomtype){
+__device__ void intersectAllTriangles(const vec4 * tex ,const Ray& r, float& t_scene, size_t & triangle_id, const size_t numTris, int& geomtype){
 
     for (size_t i = 0; i < numTris; i++)
     {
@@ -152,14 +154,14 @@ __device__ void intersectAllTriangles(const float4 * tex ,const Ray& r, float& t
         // (float4(vertex.x,vertex.y,vertex.z, 0), float4 (egde1.x,egde1.y,egde1.z,0),float4 (egde2.x,egde2.y,egde2.z,0))
 
         // i is triangle index, each triangle represented by 3 float4s in triangle_texture
-        float4 v0    = tex[ i * 3];
-        float4 edge1 = tex[i * 3 + 1];
-        float4 edge2 = tex[i * 3 + 2];
+        vec4 v0    = tex[ i * 3];
+        vec4 edge1 = tex[i * 3 + 1];
+        vec4 edge2 = tex[i * 3 + 2];
 
 //        // intersect ray with reconstructed triangle
-        float t = RayTriangleIntersection(r,make_float3(v0.x, v0.y, v0.z),
-                                          make_float3(edge1.x, edge1.y, edge1.z),
-                                          make_float3(edge2.x, edge2.y, edge2.z));
+        float t = RayTriangleIntersection(r,vec3(v0.x, v0.y, v0.z),
+                                          vec3(edge1.x, edge1.y, edge1.z),
+                                          vec3(edge2.x, edge2.y, edge2.z));
 
         // keep track of closest distance and closest triangle
         // if ray/tri intersection finds an intersection point that is closer than closest intersection found so far
