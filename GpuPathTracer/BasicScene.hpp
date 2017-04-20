@@ -40,7 +40,6 @@ struct kernelInfo{
     CamInfo cam;
     glm::vec4 *  triangleTex = nullptr;
     size_t numTris = 0;
-
 };
 class BasicScene{
 public:

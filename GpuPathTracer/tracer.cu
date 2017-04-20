@@ -7,8 +7,6 @@
 
 
 #include "BasicScene.hpp"
-
-
 #include "cuda_runtime.h"
 #include <stdio.h>
 #include "math.h"
@@ -22,13 +20,17 @@
 #include "cuda_gl_interop.h"
 #include "curand.h"
 #include "curand_kernel.h"
-
 #include "cudaUtils.cu"
 
 
 
-//passing struct by value
+
+
+
+__device__ int counter = 0;
 __global__ void cudaProcess(const kernelInfo info){
+
+
 
 
     uint tx = threadIdx.x;
@@ -43,6 +45,7 @@ __global__ void cudaProcess(const kernelInfo info){
     int w = info.width;
     int h = info.height;
     if(x == 0 && y ==0 ) {
+
 //        printf("rei tex size is %ld \n",info.numTris);
         //TODO keep this function and disable it
 //        printf("received vars\n");
@@ -54,6 +57,7 @@ __global__ void cudaProcess(const kernelInfo info){
 //        printf("cam width %f\n",info.cam.dist*info.cam.aspect*info.cam.fov);
 //        printf("tri tex size %ld\n",info.numTris);
     }
+
     if(x>=w || y>=h)
         return;
 
@@ -67,12 +71,12 @@ __global__ void cudaProcess(const kernelInfo info){
 
     u_char r = 255,g = 255,b = 255,a = 255;
 
-    Ray camRay = getCamRayDir(info.cam,x,h-1-y,w,h);
+    Ray camRay = getCamRayDir(info.cam,x,y,w,h);
 
     {
         float t;
-        size_t triangle_id;
-        int geomtype;
+        int triangle_id;
+        int geomtype = -1;
 
         float tmin = 1e20;
         float tmax = -1e20;
@@ -88,12 +92,14 @@ __global__ void cudaProcess(const kernelInfo info){
 
         // if ray hits bounding box of triangle meshes, intersect ray with all triangles
         //TODO insert bounding box here
-
         intersectAllTriangles(triTex,camRay, t, triangle_id, triTexSize, geomtype);
 
 
-        if(t<inf){
 
+
+
+
+        if(t<inf){
             r = 255;
             g = 0;
             b = 0;

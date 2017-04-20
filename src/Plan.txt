@@ -15,6 +15,13 @@ Experiment with different data types
 Cleanup code and commented stuff
 
 
+Prep up the CPU Code
+
+
+
+
+
+
 GUI Design
 =>optimize packing data for efficient retrival on GPU
 =>Cuda controls(Ray depth,Samples,block size)
@@ -27,7 +34,9 @@ Report additions
 =>Speedup curves
 =>timing data for kernels and total gpu time and cpu comparisions
 =>Speedup should be shown with 2-3 methods and graphs to accompany
+=>Basic Loop Addition
 
 [DONE]tried texture memory
 [DONE]setup cuda and opengl interop
 [DONE]Basic RayTracing and Camera Setup
+[DONE]Backface Culling Using muller trumbore algorithm

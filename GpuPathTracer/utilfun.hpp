@@ -16,6 +16,15 @@
 
 class GLFWwindow;
 
+
+struct TriMesh{
+    //vertex and two edges
+    thrust::host_vector<glm::vec4> ve;
+    thrust::host_vector<glm::vec4> normals;
+
+    //TODO add bounding box
+};
+
 namespace uf {
     struct GpuTimer
     {
@@ -83,7 +92,7 @@ namespace uf {
 
     //TODO make this a struct with bounding box and other stuff
     //load obj objects
-    thrust::host_vector<glm::vec4> loadTris(const char *filename);
+    TriMesh loadTris(const char *filename);
 
 }
 #endif //GPUPROJECT_UTILS_HPP

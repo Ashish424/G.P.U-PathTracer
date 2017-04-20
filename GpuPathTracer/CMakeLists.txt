@@ -9,7 +9,8 @@ set(GpuBasicCudaSrc tracer.cu )
 
 #MESSAGE(STATUS "deps " ${DEPS_SOURCES})
 cuda_add_executable(GpuBasicTracer ${GpuBasicCudaSrc}  ${GpuBasicSrc} ${GpuBasicHdrs} ${DEPS_SOURCES}  ${TINY_OBJ_SOURCE})
-target_link_libraries(GpuBasicTracer glfw ${GLFW_LIBRARIES} -ldl)
+#TODO make stuff windows compilable remove -ldl from here
+target_link_libraries(GpuBasicTracer glfw -ldl)
 set_target_properties(GpuBasicTracer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/GpuBasicTracer)
 #TODO see if to make shaders as target so that if required
 file(GLOB Shaders

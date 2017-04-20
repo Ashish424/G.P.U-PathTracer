@@ -11,11 +11,15 @@
 #include <iostream>
 #include <cuda_runtime_api.h>
 #include <cuda_gl_interop.h>
-
+#include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
 using std::cout;
 using std::endl;
-
+using glm::vec3;
+using glm::vec4;
+#define USE_TINY
 namespace uf {
     GLFWwindow *createWindow(int width, int height, const char *title) {
 
@@ -148,11 +152,91 @@ namespace uf {
         return sp;
     }
 
-    using glm::vec4;
 
-    thrust::host_vector<vec4> loadTris(const char *filename) {
+    TriMesh loadTris(const char *filename) {
 
-        thrust::host_vector<vec4> triVec;
+    #ifndef USE_TINY
+
+
+        if (!in.good())
+        {
+            std::cout << "ERROR: loading obj:(" << filename << ") file not found or not good" << "\n";
+//            system("PAUSE");
+            exit(0);
+        }
+
+        char buffer[256], str[255];
+        float f1, f2, f3;
+
+        std::vector<vec3> vertVec;
+        std::vector<glm::ivec3> faceVec;
+
+        while (!in.getline(buffer, 255).eof())
+        {
+            buffer[255] = '\0';
+            sscanf(buffer, "%s", str, 255);
+
+            // reading a vertex
+            if (buffer[0] == 'v' && (buffer[1] == ' ' || buffer[1] == 32)){
+                if (sscanf(buffer, "v %f %f %f", &f1, &f2, &f3) == 3){
+                    vertVec.push_back(glm::vec3(f1, f2, f3));
+                }
+                else{
+                    std::cout << "ERROR: vertex not in wanted format in OBJLoader" << "\n";
+                    exit(-1);
+                }
+            }
+                // reading faceMtls
+            else if (buffer[0] == 'f' && (buffer[1] == ' ' || buffer[1] == 32))
+            {
+                glm::ivec3 f;
+                int nt = sscanf(buffer, "f %d %d %d", &f[0], &f[1], &f[2]);
+                if (nt != 3){
+                    std::cout << "ERROR: I don't know the format of that FaceMtl" << "\n";
+                    exit(-1);
+                }
+
+                faceVec.push_back(f);
+            }
+        }
+        vec3(0,0,-350);
+        for (size_t i = 0; i < faceVec.size(); i++) {
+            cout << glm::to_string(faceVec[i])<< endl;
+
+        }
+        for (size_t i = 0; i < vertVec.size(); i++) {
+            cout << glm::to_string(vertVec[i])<< endl;
+
+        }
+
+
+
+        vec3 off = vec3(0,0,-350);
+        for (size_t i = 0; i < faceVec.size(); i++)
+        {
+            // make a local copy of the triangle vertices
+            vec3 v0 = vertVec[faceVec[i][0] - 1];
+            vec3 v1 = vertVec[faceVec[i][1] - 1];
+            vec3 v2 = vertVec[faceVec[i][2] - 1];
+
+            // translate
+            v0 += off;
+            v1 += off;
+            v2 += off;
+
+            glm::vec4 v04(v0.x, v0.y, v0.z, 0);
+            glm::vec4 v14(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z, 0);
+            glm::vec4 v24(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z, 0);
+            triVec.push_back(v04);
+            triVec.push_back(v14);
+            triVec.push_back(v24);
+        }
+        return triVec;
+
+#else
+
+        TriMesh sendMesh;
+        std::ifstream in(filename);
 
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
@@ -177,38 +261,53 @@ namespace uf {
         std::cout << "# of verts : " << attribs.vertices.size() << std::endl;
 
 
-        for (size_t i = 0; i < attribs.vertices.size()/3; ++i) {
-            cout << attribs.vertices[i] << attribs.vertices[i+1] << attribs.vertices[i+2] << endl;
-
-        }
+//        for (size_t i = 0; i < attribs.vertices.size()/3; ++i) {
+//            cout << attribs.vertices[i] << attribs.vertices[i+1] << attribs.vertices[i+2] << endl;
+//
+//        }
 
         for (size_t i = 0; i < shapes.size(); ++i) {
             assert((shapes[i].mesh.indices.size() % 3) == 0);
             for (size_t f = 0; f < shapes[i].mesh.indices.size() / 3; ++f) {
 
-                float4 currTri[3];
-                float4 off = make_float4(0,0,-350,0);
+                vec4 currTri[3];
+                vec4 currTriNorm[3];
+
+                vec4 off = vec4(0,0,-21,0);
                 for(size_t k = 0;k<3;++k){
 
                     float vX = attribs.vertices[shapes[i].mesh.indices[3*f+k].vertex_index*3];
                     float vY = attribs.vertices[shapes[i].mesh.indices[3*f+k].vertex_index*3+1];
                     float vZ = attribs.vertices[shapes[i].mesh.indices[3*f+k].vertex_index*3+2];
-                    currTri[k] = make_float4(vX,vY,vZ,1);
-                    currTri[k]+=off;
 
+//                    float nX = attribs.normals[shapes[i].mesh.indices[3*f+k].vertex_index*3];
+//                    float nY = attribs.normals[shapes[i].mesh.indices[3*f+k].vertex_index*3+1];
+//                    float nZ = attribs.normals[shapes[i].mesh.indices[3*f+k].vertex_index*3+2];
+
+                    currTri[k] = vec4(vX,vY,vZ,1);
+                    currTri[k]+=off;
+//                    currTriNorm[k] = vec4(nX,nY,nZ,0);
                 }
 
-                triVec.push_back(vec4(currTri[0].x, currTri[0].y, currTri[0].z, 0));
-                triVec.push_back(vec4(currTri[1].x - currTri[0].x, currTri[1].y - currTri[0].y, currTri[1].z - currTri[0].z, 0));
-                triVec.push_back(vec4(currTri[2].x - currTri[0].x, currTri[2].y - currTri[0].y, currTri[2].z - currTri[0].z, 0));
+                sendMesh.ve.push_back(currTri[0]);
+                sendMesh.ve.push_back(currTri[1]-currTri[0]);
+                sendMesh.ve.push_back(currTri[2]-currTri[0]);
+
+//                sendMesh.normals.push_back(currTriNorm[0]);
+//                sendMesh.normals.push_back(currTriNorm[1]);
+//                sendMesh.normals.push_back(currTriNorm[2]);
+
+
+
 
             }
         }
-        return triVec;
+        return sendMesh;
 
-
+#endif
 
     }
+
 }
 
 

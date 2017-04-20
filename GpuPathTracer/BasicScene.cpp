@@ -10,15 +10,17 @@
 #include <cuda_gl_interop.h>
 #include <cstring>
 #include <glm/gtc/type_ptr.hpp>
-//#define GLM_ENABLE_EXPERIMENTAL
-//#include <glm/gtx/string_cast.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 
 
-
 float MouseSensitivity = 0.25f;
+float moveSpeed = 10.0f;
+//value setted on basis of distance from the camera
+float scrollSensitivity = 0.1f;
 //quad positions in NDC Space
 GLfloat quadVertices[20] = {
         // Positions  // Texture Coords
@@ -28,6 +30,7 @@ GLfloat quadVertices[20] = {
         1.0f, -1.0f,  0.99f, 1.0f, 0.0f,
 };
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
+void scrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 void setPitchAndRoll(CamInfo & cam,float xoffset, float yoffset){
     xoffset *= MouseSensitivity;
     yoffset *= MouseSensitivity;
@@ -73,7 +76,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         glfwSetWindowUserPointer(mainWindow, this);
 //        glfwSetCursorPosCallback(mainWindow, mousePosCallback);
         glfwSetKeyCallback(mainWindow, keyCallback);
-//        glfwSetScrollCallback(mainWindow, scrollCallback);
+        glfwSetScrollCallback(mainWindow, scrollCallback);
         glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
@@ -116,7 +119,6 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     }
     //shader setup
     {
-        //TODO delete shader program here
         using namespace uf;
         auto vsS(fileToCharArr("./quad.vert"));
         auto fsS(fileToCharArr("./quad.frag"));
@@ -125,7 +127,6 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     }
     //cuda buffer setup
     {
-        //TODO delete cuda malloc here
         size_t num_texels =  (size_t)width*height;
         size_t num_values = num_texels * 4;
         size_t size_tex_data = sizeof(GLubyte) * num_values;
@@ -140,7 +141,9 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
         using glm::vec4;
 
-        thrust::host_vector<vec4> cpuTris1(uf::loadTris("./cube.obj"));
+        TriMesh currentMesh(uf::loadTris("./plane.obj"));
+        thrust::host_vector<vec4> cpuTris1(currentMesh.ve);
+
         cout << "num verts: " << cpuTris1.size()<< endl;
 
 //        thrust::host_vector<vec4> cpuTris1(uf::loadTris("filename.obj"));
@@ -158,8 +161,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         cudaMemcpy(gpuTris,thrust::raw_pointer_cast(&cpuTris1[0]),sizeof(vec4)*cpuTris1.size(),cudaMemcpyHostToDevice);
 
 
-
-
+//TODO delete this code if not using textures anywhere else
 //        trianglesTex.desc.resType = cudaResourceTypeLinear;
 //        trianglesTex.desc.res.linear.devPtr = thrust::raw_pointer_cast(&gpuTris[0]);
 //        trianglesTex.desc.res.linear.desc = cudaCreateChannelDesc<float4>();
@@ -188,10 +190,10 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     }
 
     //setup camera
-
     {
 
-        info.cam.dist = height/2;
+        info.cam.dist = height/60;
+        scrollSensitivity *= info.cam.dist;
         info.cam.pitch = 0;
         info.cam.yaw = 0;
         info.cam.aspect = width*1.0f/height;
@@ -209,12 +211,50 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     }
 
 
+    //TODO remove this finally
+    //cam debug
+    {
+
+//        cout << glm::to_string(info.cam.up)<< endl;
+//        cout << glm::to_string(info.cam.right)<< endl;
+
+
+        //objects need to have negative coords relative to camera
+        const float xStep = (1/2.0f)*info.cam.dist*info.cam.aspect*info.cam.fov;
+        const float yStep = (height - height/2.0f)*info.cam.dist*info.cam.fov/height;
+
+        glm::vec3 dir = info.cam.front*info.cam.dist+info.cam.right*(1.0f*xStep)+info.cam.up*(1.0f*yStep);
+        cout << "pos string "<<glm::to_string(dir)<< endl;
+//    float3 dir = vtof3(cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep));
+
+
+
+    }
 
 
 }
 
 BasicScene::~BasicScene() {
 
+
+
+
+
+
+    checkCudaErrors(cudaGraphicsUnregisterResource(cudaTexResource));
+
+    {
+        glDeleteBuffers(1,&renderQuad.vbo);
+        glDeleteVertexArrays(1,&renderQuad.vao);
+    }
+
+    {
+        glDeleteProgram(renderQuad.program);
+    }
+
+    {
+        checkCudaErrors(cudaFree(cudaDestResource));
+    }
 
     //destroy triangles texture
     {
@@ -248,13 +288,14 @@ void BasicScene::run() {
 
         uf::GpuTimer g;
         g.Start();
-
-
-
         launchKernel(info);
         g.Stop();
         std::cout << g.Elapsed() << std::endl;
 
+
+
+//        uf::GpuTimer memTimer;
+//        memTimer.Start();
         cudaArray *texturePtr = nullptr;
         checkCudaErrors(cudaGraphicsMapResources(1, &cudaTexResource, 0));
         checkCudaErrors(cudaGraphicsSubResourceGetMappedArray(&texturePtr, cudaTexResource, 0, 0));
@@ -264,7 +305,8 @@ void BasicScene::run() {
         size_t size_tex_data = sizeof(GLubyte) * num_values;
         checkCudaErrors(cudaMemcpyToArray(texturePtr, 0, 0, cudaDestResource, size_tex_data, cudaMemcpyDeviceToDevice));
         checkCudaErrors(cudaGraphicsUnmapResources(1, &cudaTexResource, 0));
-
+//        memTimer.Stop();
+//        std::cout << memTimer.Elapsed() << std::endl;
 
         draw();
 
@@ -285,6 +327,7 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
     auto sn  = (BasicScene * )glfwGetWindowUserPointer(window);
     assert(sn!= nullptr && sn->mainWindow == window);
 
+    //TODO imp add here the reset button to get back to camera default pos
     if(action == GLFW_PRESS) {
         if (key == GLFW_KEY_R) {
 
@@ -297,42 +340,66 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
 }
 
 void scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
+    auto scn = (BasicScene *)glfwGetWindowUserPointer(window);
+    assert(scn!= nullptr);
+    using namespace std;
+    float off = scrollSensitivity*(float)yoffset;
+    cout << glm::to_string(scn->info.cam.front*off) << endl;
+    scn->info.cam.pos+=off*scn->info.cam.front;
+
+
+
+
+
+
+
 
 }
 
 void BasicScene::Updater::operator()(double delta) {
 
-    float camSpeed = 300.0f*(float)delta;
+    float camSpeed = moveSpeed*(float)delta;
+
+
+    bool panning = false;
 
     if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_W)){
-
-        prtScn.info.cam.pos+=prtScn.info.cam.front*camSpeed;
+        prtScn.info.cam.pos+=prtScn.info.cam.up*camSpeed;
+    }
+    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_S)){
+        prtScn.info.cam.pos-=prtScn.info.cam.up*camSpeed;
     }
     if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_A)){
         prtScn.info.cam.pos-=prtScn.info.cam.right*camSpeed;
     }
-    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_S)){
-        prtScn.info.cam.pos-=prtScn.info.cam.front*camSpeed;
-    }
     if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_D)){
         prtScn.info.cam.pos+=prtScn.info.cam.right*camSpeed;
     }
+    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_LEFT_SHIFT)||glfwGetKey(prtScn.mainWindow,GLFW_KEY_RIGHT_SHIFT)){
+        panning = true;
+    }
+
 
     double xPos,yPos;
     glfwGetCursorPos(prtScn.mainWindow,&xPos,&yPos);
-    if(firstMouse){
-        firstMouse = false;
+    if(!panning) {
+        if (firstMouse) {
+            firstMouse = false;
+            lastX = xPos;
+            lastY = yPos;
+        }
+        float offsetX = float(xPos - lastX);
+        float offsetY = float(yPos - lastY);
         lastX = xPos;
         lastY = yPos;
+        setPitchAndRoll(prtScn.info.cam, offsetX, offsetY);
     }
-    float offsetX = float(xPos-lastX);
-    float offsetY = float(yPos-lastY);
-    lastX = xPos;
-    lastY = yPos;
+    else{
+        //implement panning here
 
 
-    setPitchAndRoll(prtScn.info.cam,offsetX,offsetY);
-
+        firstMouse = true;
+    }
 
 
 

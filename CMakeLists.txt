@@ -40,7 +40,9 @@ MESSAGE( STATUS "cuda toolkit location" ${CUDA_TOOLKIT_ROOT_DIR} )
 #option(OPTION_BUILD_DOCS "" OFF)
 #TODO see if you need this or use just stb image lib
 #add_subdirectory(deps/glraw)
-
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(deps/glfw)
 

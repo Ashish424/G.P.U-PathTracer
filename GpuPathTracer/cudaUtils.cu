@@ -13,17 +13,15 @@ using glm::vec4;
 
 
 
-enum Refl { DIFF, SPEC, REFR };
+enum Refl { DIFF, METAL, SPEC, REFR, COAT };
 struct Ray {
     vec3 origin,dir;
     __device__ Ray(vec3 o, vec3 d) : origin(o), dir(d) {}
 };
 struct Sphere {
-
-    float rad;				// radius
+    float rad;			// radius
     vec3 pos, emi, col;	// position, emission, color
     Refl refl;			// reflection type (DIFFuse, SPECular, REFRactive)
-
     __device__ float intersect(const Ray &r) const { // returns distance, 0 if nohit
 
         // Ray/sphere intersection
@@ -38,9 +36,55 @@ struct Sphere {
         if (disc<0) return 0; else disc = sqrtf(disc);
         return (t = b - disc)>epsilon ? t : ((t = b + disc)>epsilon ? t : 0);
     }
-    __device__ Sphere(float rad,vec3 pos,vec3 emi,vec3 col,Refl refl):rad(rad),pos(pos),emi(emi),col(col),refl(refl){
-    }
+    __device__ Sphere(float rad,vec3 pos,vec3 emi,vec3 col,Refl refl):rad(rad),pos(pos),emi(emi),col(col),refl(refl){}
 };
+//struct Box {
+//
+//    vec3 min;
+//    vec3 max;
+//    vec3 emi; // emission
+//    vec3 col; // colour
+//    Refl refl;
+//
+//    // ray/box intersection
+//    // for theoretical background of the algorithm see
+//    // http://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+//    // optimised code from http://www.gamedev.net/topic/495636-raybox-collision-intersection-point/
+//    __device__ float intersect(const Ray &r) const {
+//
+//        float epsilon = 0.001f; // required to prevent self intersection
+//
+//        float3 tmin = (min - r.orig) / r.dir;
+//        float3 tmax = (max - r.orig) / r.dir;
+//
+//        float3 real_min = minf3(tmin, tmax);
+//        float3 real_max = maxf3(tmin, tmax);
+//
+//        float minmax = minf1(minf1(real_max.x, real_max.y), real_max.z);
+//        float maxmin = maxf1(maxf1(real_min.x, real_min.y), real_min.z);
+//
+//        if (minmax >= maxmin) { return maxmin > epsilon ? maxmin : 0; }
+//        else return 0;
+//    }
+//
+//    // calculate normal for point on axis aligned box
+//    __device__ float3 Box::normalAt(float3 &point) {
+//
+//        float3 normal = make_float3(0.f, 0.f, 0.f);
+//        float min_distance = 1e8;
+//        float distance;
+//        float epsilon = 0.001f;
+//
+//        if (fabs(min.x - point.x) < epsilon) normal = make_float3(-1, 0, 0);
+//        else if (fabs(max.x - point.x) < epsilon) normal = make_float3(1, 0, 0);
+//        else if (fabs(min.y - point.y) < epsilon) normal = make_float3(0, -1, 0);
+//        else if (fabs(max.y - point.y) < epsilon) normal = make_float3(0, 1, 0);
+//        else if (fabs(min.z - point.z) < epsilon) normal = make_float3(0, 0, -1);
+//        else normal = make_float3(0, 0, 1);
+//
+//        return normal;
+//    }
+//};
 
 
 
@@ -92,8 +136,8 @@ __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const
 
 
     //objects need to have negative coords relative to camera
-    const int xStep = (px - w/2.0f + 0.5)*cam.dist*cam.aspect*cam.fov/w;
-    const int yStep = (py - h/2.0f + 0.5)*cam.dist*cam.fov/h;
+    const float xStep = (px - w/2.0f + 0.5)*cam.dist*cam.aspect*cam.fov/w;
+    const float yStep = (py - h/2.0f + 0.5)*cam.dist*cam.fov/h;
 
     glm::vec3 dir = cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep);
 //    float3 dir = vtof3(cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep));
@@ -127,6 +171,8 @@ __device__ float RayTriangleIntersection(const Ray &r,
     vec3 tvec = r.origin - v0;
     vec3 pvec = cross(r.dir, edge2);
     float  det = dot(edge1, pvec);
+    if(det < 0)
+        return -1.0f;
 
     det = __fdividef(1.0f, det);
 
@@ -145,28 +191,20 @@ __device__ float RayTriangleIntersection(const Ray &r,
     return dot(edge2, qvec) * det;
 }
 
-__device__ void intersectAllTriangles(const vec4 * tex ,const Ray& r, float& t_scene, size_t & triangle_id, const size_t numTris, int& geomtype){
-
+__device__ void intersectAllTriangles(const vec4 * tex ,const Ray& r, float& t_scene, int & triangle_id, const size_t numTris, int& geomtype){
     for (size_t i = 0; i < numTris; i++)
     {
-        // the triangles are packed into the 1D texture using three consecutive float4 structs for each triangle,
-        // first float4 contains the first vertex, second float4 contains the first precomputed edge, third float4 contains second precomputed edge like this:
-        // (float4(vertex.x,vertex.y,vertex.z, 0), float4 (egde1.x,egde1.y,egde1.z,0),float4 (egde2.x,egde2.y,egde2.z,0))
+        vec4 v0    = tex[i*3];
+        vec4 edge1 = tex[i*3+1];
+        vec4 edge2 = tex[i*3+2];
 
-        // i is triangle index, each triangle represented by 3 float4s in triangle_texture
-        vec4 v0    = tex[ i * 3];
-        vec4 edge1 = tex[i * 3 + 1];
-        vec4 edge2 = tex[i * 3 + 2];
-
-//        // intersect ray with reconstructed triangle
         float t = RayTriangleIntersection(r,vec3(v0.x, v0.y, v0.z),
                                           vec3(edge1.x, edge1.y, edge1.z),
                                           vec3(edge2.x, edge2.y, edge2.z));
 
-        // keep track of closest distance and closest triangle
-        // if ray/tri intersection finds an intersection point that is closer than closest intersection found so far
         if (t < t_scene && t > 0.001){
             t_scene = t;triangle_id = i;geomtype = 3;
         }
+
     }
 }
