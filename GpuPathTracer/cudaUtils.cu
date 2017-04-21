@@ -94,8 +94,8 @@ __device__ float4 vtof4(const glm::vec4 & v);
 __device__ glm::vec4 f4tov(const float4 & f4);
 __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const int w,const int h);
 __device__ float3 getTriangleNormal(const cudaTextureObject_t & tex,const size_t triangleIndex);
-__device__ float RayTriangleIntersection(const Ray &r,const float3 &v0,const float3 &edge1,const float3 &edge2);
-__device__ void intersectAllTriangles(const vec4 * tex,const Ray& r, float& t_scene, int& triangle_id, const size_t numTris, int& geomtype);
+__device__ float RayTriangleIntersection(const Ray &r,const float3 &v0,const float3 &edge1,const float3 &edge2,bool cullBackFaces);
+__device__ void intersectAllTriangles(const vec4 * tex ,const Ray& r, float& t_scene, int & triangle_id, const size_t numVerts, int& geomtype);
 
 
 
@@ -166,12 +166,12 @@ return trinormal;
 __device__ float RayTriangleIntersection(const Ray &r,
                                          const vec3 &v0,
                                          const vec3 &edge1,
-                                         const vec3 &edge2){
+                                         const vec3 &edge2,bool cullBackFaces){
 
     vec3 tvec = r.origin - v0;
     vec3 pvec = cross(r.dir, edge2);
     float  det = dot(edge1, pvec);
-    if(det < 0)
+    if(cullBackFaces && det < 0)
         return -1.0f;
 
     det = __fdividef(1.0f, det);
@@ -191,7 +191,9 @@ __device__ float RayTriangleIntersection(const Ray &r,
     return dot(edge2, qvec) * det;
 }
 
-__device__ void intersectAllTriangles(const vec4 * tex ,const Ray& r, float& t_scene, int & triangle_id, const size_t numTris, int& geomtype){
+__device__ void intersectAllTriangles(const vec4 * tex ,const Ray& r, float& t_scene, int & triangle_id, const size_t numVerts, int& geomtype,bool cullBackFaces){
+    size_t numTris = numVerts/3;
+
     for (size_t i = 0; i < numTris; i++)
     {
         vec4 v0    = tex[i*3];
@@ -200,7 +202,7 @@ __device__ void intersectAllTriangles(const vec4 * tex ,const Ray& r, float& t_s
 
         float t = RayTriangleIntersection(r,vec3(v0.x, v0.y, v0.z),
                                           vec3(edge1.x, edge1.y, edge1.z),
-                                          vec3(edge2.x, edge2.y, edge2.z));
+                                          vec3(edge2.x, edge2.y, edge2.z),cullBackFaces);
 
         if (t < t_scene && t > 0.001){
             t_scene = t;triangle_id = i;geomtype = 3;

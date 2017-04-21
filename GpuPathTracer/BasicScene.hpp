@@ -39,7 +39,8 @@ struct kernelInfo{
     int width,height;
     CamInfo cam;
     glm::vec4 *  triangleTex = nullptr;
-    size_t numTris = 0;
+    size_t numVerts = 0;
+    bool cullBackFaces = true;
 };
 class BasicScene{
 public:

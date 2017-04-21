@@ -28,13 +28,16 @@ GUI Design
 Interactive Samples,Interactive Depth
 =>Display stuff like kernel execution time,texture mapping
 =>Gl controls(Fog)
+=>BackFace Culling
 
 Report additions
+=>bilateral rendering for cpu vs gpu
 =>Basic GPU implementation(=>recursion overhead avoided with loops)
 =>Speedup curves
 =>timing data for kernels and total gpu time and cpu comparisions
 =>Speedup should be shown with 2-3 methods and graphs to accompany
 =>Basic Loop Addition
+=>Write about GUI controls
 
 [DONE]tried texture memory
 [DONE]setup cuda and opengl interop

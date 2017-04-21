@@ -17,6 +17,9 @@
 #include <thrust/device_vector.h>
 
 
+
+
+
 float MouseSensitivity = 0.25f;
 float moveSpeed = 10.0f;
 //value setted on basis of distance from the camera
@@ -100,7 +103,6 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     }
     //buffer setup
     {
-        //TODO delete buffers
         glGenVertexArrays(1,&renderQuad.vao);
         glGenBuffers(1,&renderQuad.vbo);
 
@@ -136,10 +138,12 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     }
     //TODO deletions here too
 
-    size_t numTris = 0;
+    size_t numVerts = 0;
+    //TODO move this to main and just copy to gpu here
     //cuda texture for triangles
     {
         using glm::vec4;
+
 
         TriMesh currentMesh(uf::loadTris("./plane.obj"));
         thrust::host_vector<vec4> cpuTris1(currentMesh.ve);
@@ -153,7 +157,6 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 //        for(size_t i = 0;i<cpuTris1.size();++i){
 //            cpuTris1[i] = make_float4(rand()/(float)RAND_MAX,rand()/(float)RAND_MAX,rand()/(float)RAND_MAX,rand()/(float)RAND_MAX);
 //        }
-
 //        cpuTris1.insert(cpuTris1.end(), cpuTris2.begin(), cpuTris2.end());
 
         //TODO see if pinned memory here
@@ -176,9 +179,9 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
 //        cudaCreateTextureObject(&trianglesTex.textureObject, &trianglesTex.desc, &trianglesTex.texDesc, NULL);
 
-        numTris = cpuTris1.size();
+        numVerts = cpuTris1.size();
     }
-    //kernel default parameters
+//    kernel default parameters
     {
         info.dev_drawRes = cudaDestResource;
         info.width = width;
@@ -186,7 +189,8 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         info.blockSize = dim3(16,16,1);
         info.triangleTex = gpuTris;
 //        info.triangleTex = trianglesTex.textureObject;
-        info.numTris = numTris;
+        info.numVerts = numVerts;
+        info.cullBackFaces = false;
     }
 
     //setup camera
@@ -206,7 +210,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         //right vector in x-z plane always(no roll camera)
         info.cam.right = glm::vec3(-info.cam.front.z,0,info.cam.front.x);
         info.cam.up    = glm::normalize(glm::cross(info.cam.right,info.cam.front));
-        info.cam.pos = glm::vec3(0,0,0);
+        info.cam.pos   = glm::vec3(0,0,0);
 
     }
 
@@ -215,11 +219,11 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     //cam debug
     {
 
-//        cout << glm::to_string(info.cam.up)<< endl;
-//        cout << glm::to_string(info.cam.right)<< endl;
+        cout << glm::to_string(info.cam.up)<< endl;
+        cout << glm::to_string(info.cam.right)<< endl;
 
 
-        //objects need to have negative coords relative to camera
+//        objects need to have negative coords relative to camera
         const float xStep = (1/2.0f)*info.cam.dist*info.cam.aspect*info.cam.fov;
         const float yStep = (height - height/2.0f)*info.cam.dist*info.cam.fov/height;
 

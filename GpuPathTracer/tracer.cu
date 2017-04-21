@@ -41,12 +41,12 @@ __global__ void cudaProcess(const kernelInfo info){
     uint y = blockIdx.y*bh + ty;
     size_t pixelPos = y*info.width+x;
     const glm::vec4 * const triTex = info.triangleTex;
-    const size_t triTexSize = info.numTris;
+    const size_t triTexSize = info.numVerts;
     int w = info.width;
     int h = info.height;
     if(x == 0 && y ==0 ) {
 
-//        printf("rei tex size is %ld \n",info.numTris);
+//        printf("rei tex size is %ld \n",info.numVerts);
         //TODO keep this function and disable it
 //        printf("received vars\n");
 //        printf("%f\n",info.cam.dist);
@@ -55,7 +55,7 @@ __global__ void cudaProcess(const kernelInfo info){
 //        printf("%d\n",info.width);
 //        printf("%d\n",info.height);
 //        printf("cam width %f\n",info.cam.dist*info.cam.aspect*info.cam.fov);
-//        printf("tri tex size %ld\n",info.numTris);
+//        printf("tri tex size %ld\n",info.numVerts);
     }
 
     if(x>=w || y>=h)
@@ -92,7 +92,8 @@ __global__ void cudaProcess(const kernelInfo info){
 
         // if ray hits bounding box of triangle meshes, intersect ray with all triangles
         //TODO insert bounding box here
-        intersectAllTriangles(triTex,camRay, t, triangle_id, triTexSize, geomtype);
+        intersectAllTriangles(triTex,camRay, t, triangle_id, triTexSize, geomtype,info.cullBackFaces);
+
 
 
 
@@ -107,7 +108,6 @@ __global__ void cudaProcess(const kernelInfo info){
         }
 
 
-//        }
 
 //         t is distance to closest intersection of ray with all primitives in the scene (spheres, boxes and triangles)
 //        return t<inf;
@@ -120,7 +120,7 @@ __global__ void cudaProcess(const kernelInfo info){
 //    {
 //
 //        float rad= 300/(sqrt(2.0f)-1);
-//        Sphere sp(rad/2,make_float3(0.0f, 0,-rad-h/2),make_float3(0,0,0),make_float3(0.9f, 0.9f, 0.9f ), DIFF);
+//        Sphere sp(rad/2,vec3(0.0f, 0,-rad-h/2),vec3(0,0,0),vec3(0.9f, 0.9f, 0.9f ), DIFF);
 //        float dist = sp.intersect(camRay);
 //
 //        if(dist > 0 ){

@@ -5,46 +5,22 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_SOURCE_DIR}/bin)
 
 
-#setup qt
-#TODO see if you require this or use just imgui
-
-#set(CMAKE_AUTOMOC ON)
-#set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-#find_package(Qt5Widgets REQUIRED )
-#find_package(Qt5OpenGL REQUIRED )
-
-#find_package(Qt5Core REQUIRED )
-#find_package(Qt5Gui REQUIRED )
-#use cuda on linux only
-
 find_package(CUDA REQUIRED)
 MESSAGE( STATUS "cuda toolkit location" ${CUDA_TOOLKIT_ROOT_DIR} )
-#MESSAGE( STATUS "QT5 widgets version " ${Qt5Widgets_VERSION})
-#MESSAGE( STATUS "QT5 Core location " ${Qt5Core_DIR})
 
 
 
-#TODO delete assimp if not used fr
-#add assimp library
-#option(ASSIMP_BUILD_ASSIMP_TOOLS "" OFF)
-#option(ASSIMP_BUILD_SAMPLES "" OFF)
-#option(ASSIMP_BUILD_TESTS "" OFF)
-#add_subdirectory(deps/assimp)
 
-
-#add glraw library
-#option(BUILD_SHARED_LIBS  "" OFF)
-#option(OPTION_SELF_CONTAINED "" OFF)
-#option(OPTION_BUILD_TESTS "" OFF)
-#option(OPTION_BUILD_DOCS "" OFF)
-#TODO see if you need this or use just stb image lib
-#add_subdirectory(deps/glraw)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
 add_subdirectory(deps/glfw)
+
+
+option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+option(ASSIMP_BUILD_SAMPLES OFF)
+option(ASSIMP_BUILD_TESTS OFF)
+add_subdirectory(deps/assimp)
 
 
 include_directories(
@@ -52,8 +28,7 @@ include_directories(
         "deps/glfw/include"
         "deps/glm"
         "deps/tinyobjloader"
-#)
-        #"deps/assimp/include"
+        "deps/assimp/include"
         "deps/glraw/source/glraw")
 
 file(GLOB DEPS_SOURCES deps/glad/src/glad.c)

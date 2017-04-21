@@ -14,12 +14,17 @@
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 using std::cout;
 using std::endl;
 using glm::vec3;
 using glm::vec4;
-#define USE_TINY
+#define USE_ASSIMP
+//#define USE_TINY
+//#define USE_NONE
 namespace uf {
     GLFWwindow *createWindow(int width, int height, const char *title) {
 
@@ -155,8 +160,59 @@ namespace uf {
 
     TriMesh loadTris(const char *filename) {
 
-    #ifndef USE_TINY
 
+#ifdef USE_ASSIMP
+
+        TriMesh sendMesh;
+        Assimp::Importer importer;
+        const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+        if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+        {
+            cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
+            exit(1);
+        }
+        // Process all the node's meshes (if any)
+        for(size_t i = 0; i < scene->mNumMeshes; i++) {
+            auto currMesh = scene->mMeshes[i];
+            size_t numFaces = currMesh->mNumFaces;
+            for (size_t j = 0; j < numFaces; ++j) {
+
+                const aiFace &face = currMesh->mFaces[j];
+                //support for only triangular meshes
+
+
+                assert(face.mNumIndices == 4);
+                glm::vec3 currTri[3];
+                vec3 off = vec3(0,0,-22);
+                for (size_t k = 0; k < 3; ++k) {
+                    aiVector3D pos = currMesh->mVertices[face.mIndices[k]];
+                    currTri[k] = vec3(pos.x,pos.y,pos.z);
+//                    aiVector3D uv = currMesh->mTextureCoords[0][face.mIndices[k]];
+//                    aiVector3D normal = currMesh->HasNormals() ? currMesh->mNormals[face.mIndices[k]] : aiVector3D(1.0f, 1.0f, 1.0f);
+
+                    currTri[k]+=off;
+                }
+                glm::vec4 v04(currTri[0],1);
+                glm::vec4 v14(currTri[1]-currTri[0], 0);
+                glm::vec4 v24(currTri[2]-currTri[0], 0);
+                sendMesh.ve.push_back(v04);
+                sendMesh.ve.push_back(v14);
+                sendMesh.ve.push_back(v24);
+
+            }
+
+        }
+        for(size_t i = 0;i<sendMesh.ve.size();++i)
+            cout <<glm::to_string(sendMesh.ve[i]) << endl;
+        return sendMesh;
+
+
+
+#elif defined(USE_NONE)
+
+        TriMesh sendMesh;
+
+        std::ifstream in(filename);
 
         if (!in.good())
         {
@@ -199,19 +255,18 @@ namespace uf {
                 faceVec.push_back(f);
             }
         }
-        vec3(0,0,-350);
-        for (size_t i = 0; i < faceVec.size(); i++) {
-            cout << glm::to_string(faceVec[i])<< endl;
-
-        }
-        for (size_t i = 0; i < vertVec.size(); i++) {
-            cout << glm::to_string(vertVec[i])<< endl;
-
-        }
-
+//        for (size_t i = 0; i < faceVec.size(); i++) {
+//            cout << glm::to_string(faceVec[i])<< endl;
+//
+//        }
+//        for (size_t i = 0; i < vertVec.size(); i++) {
+//            cout << glm::to_string(vertVec[i])<< endl;
+//
+//        }
 
 
-        vec3 off = vec3(0,0,-350);
+
+        vec3 off = vec3(0,0,-22);
         for (size_t i = 0; i < faceVec.size(); i++)
         {
             // make a local copy of the triangle vertices
@@ -227,11 +282,12 @@ namespace uf {
             glm::vec4 v04(v0.x, v0.y, v0.z, 0);
             glm::vec4 v14(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z, 0);
             glm::vec4 v24(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z, 0);
-            triVec.push_back(v04);
-            triVec.push_back(v14);
-            triVec.push_back(v24);
+            sendMesh.ve.push_back(v04);
+            sendMesh.ve.push_back(v14);
+            sendMesh.ve.push_back(v24);
         }
-        return triVec;
+        cout <<"num verts loaded " << sendMesh.ve.size() << endl;
+        return sendMesh;
 
 #else
 
