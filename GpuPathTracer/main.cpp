@@ -17,7 +17,7 @@ int main(){
     //TODO load scene here and send it to app via reference
 
 
-    BasicScene s(800,600,"Basic Gpu Tracer");
+    BasicScene s(1280,720,"Basic Gpu Tracer");
     s.run();
 
 

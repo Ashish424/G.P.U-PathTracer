@@ -80,7 +80,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 //        glfwSetCursorPosCallback(mainWindow, mousePosCallback);
         glfwSetKeyCallback(mainWindow, keyCallback);
         glfwSetScrollCallback(mainWindow, scrollCallback);
-        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
     if(!uf::initGlad()){
@@ -145,7 +145,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         using glm::vec4;
 
 
-        TriMesh currentMesh(uf::loadTris("./plane.obj"));
+        TriMesh currentMesh(uf::loadTris("./cornell.obj"));
         thrust::host_vector<vec4> cpuTris1(currentMesh.ve);
 
         cout << "num verts: " << cpuTris1.size()<< endl;
@@ -191,6 +191,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 //        info.triangleTex = trianglesTex.textureObject;
         info.numVerts = numVerts;
         info.cullBackFaces = false;
+        info.depth = 1;
     }
 
     //setup camera

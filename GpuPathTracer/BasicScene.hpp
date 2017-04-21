@@ -31,6 +31,7 @@ struct CamInfo{
     float aspect;
     float fov;
 
+
 };
 void setPitchAndRoll(CamInfo & cam,float xoffset, float yoffset);
 struct kernelInfo{
@@ -41,6 +42,7 @@ struct kernelInfo{
     glm::vec4 *  triangleTex = nullptr;
     size_t numVerts = 0;
     bool cullBackFaces = true;
+    unsigned int depth = 1;
 };
 class BasicScene{
 public:
