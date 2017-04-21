@@ -1,5 +1,6 @@
 #1 CLION STUFF TO IGNORE
 /cmake-build-debug/
+/cmake-build-release/
 #2 GENERAL JETBRAINS IDE STUFF
 
 # User-specific stuff:
