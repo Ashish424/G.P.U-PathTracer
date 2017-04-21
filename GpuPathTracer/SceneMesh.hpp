@@ -20,6 +20,7 @@ public:
     };
 
 
+    std::vector<glm::vec3>         m_verts;
 public:
 
     SceneMesh(const int numTris, const int numVerts, const std::vector<Triangle>& tris, const std::vector<glm::vec3>& verts) :
@@ -43,7 +44,6 @@ private:
     int             m_numTris;
     int             m_numVerts;
     std::vector<Triangle>      m_tris;
-    std::vector<glm::vec3>         m_verts;
 };
 
 

@@ -13,6 +13,18 @@
 
 using glm::vec3;
 
+enum BVHLayout
+{
+    BVHLayout_AOS_AOS = 0,              // Nodes = array-of-structures, triangles = array-of-structures. Used by tesla_xxx kernels.
+    BVHLayout_AOS_SOA,                  // Nodes = array-of-structures, triangles = structure-of-arrays.
+    BVHLayout_SOA_AOS,                  // Nodes = structure-of-arrays, triangles = array-of-structures.
+    BVHLayout_SOA_SOA,                  // Nodes = structure-of-arrays, triangles = structure-of-arrays.
+    BVHLayout_Compact,                  // Variant of BVHLayout_AOS_AOS with implicit leaf nodes.
+    BVHLayout_Compact2,                 // Variant of BVHLayout_AOS_AOS with implicit leaf nodes.
+
+    BVHLayout_Max
+};
+
 unsigned int WangHash(unsigned int a);
 
 inline __host__ __device__ vec3 min3f(const vec3& v1, const vec3& v2){ return vec3(v1.x < v2.x ? v1.x : v2.x, v1.y < v2.y ? v1.y : v2.y, v1.z < v2.z ? v1.z : v2.z); }
