@@ -30,6 +30,18 @@ Interactive Samples,Interactive Depth
 =>Gl controls(Fog)
 =>BackFace Culling
 
+Stuff We did
+(Presentation Slides)
+A slideShow Showing the project evolving
+=>Basic Ray Tracer=>Load Objects=>Depth Check=>
+
+
+Overview of Collision Algorithms
+// http://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+// optimised code from http://www.gamedev.net/topic/495636-raybox-collision-intersection-point
+
+Final Submission
+//clean and build and get rid of all warnings
 Report additions
 =>Initial Depth Depth testing with Cornell Box
 =>bilateral rendering for cpu vs gpu
@@ -39,8 +51,13 @@ Report additions
 =>Speedup should be shown with 2-3 methods and graphs to accompany
 =>Basic Loop Addition
 =>Write about GUI controls
+=>Optimizations avoid branching by using arr of function ptrs
 
+COULD BE DONE(IN SLIDES)
+Support for material editing
 [DONE]tried texture memory
 [DONE]setup cuda and opengl interop
 [DONE]Basic RayTracing and Camera Setup
 [DONE]Backface Culling Using muller trumbore algorithm
+[DONE]Loading Objects Support
+[DONE]

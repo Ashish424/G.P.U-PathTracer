@@ -15,19 +15,16 @@
 #include <vector_types.h>
 #include "vector_functions.h"
 #include "device_launch_parameters.h"
-#include "cutil_math.h"  // required for float3 vector math
 #include "cuda_runtime.h"
 #include "cuda_gl_interop.h"
 #include "curand.h"
 #include "curand_kernel.h"
-#include "cudaUtils.cu"
+#include "cudaUtils.h"
 
 
 
 
 
-
-__device__ int counter = 0;
 __global__ void cudaProcess(const kernelInfo info){
 
 
@@ -41,10 +38,21 @@ __global__ void cudaProcess(const kernelInfo info){
     uint y = blockIdx.y*bh + ty;
     size_t pixelPos = y*info.width+x;
     const glm::vec4 * const triTex = info.triangleTex;
-    const int depth = info.depth;
+    const Sphere * const sphereTex = info.sphereTex;
+
     const size_t triTexSize = info.numVerts;
+    const size_t sphTexSize = info.numSpheres;
+
+    const int depth = info.depth;
     const int w = info.width;
     const int h = info.height;
+
+
+
+
+    curandState randState; // state of the random number generator, to prevent repetition
+    curand_init(info.hash + (blockIdx.x + blockIdx.y * gridDim.x) * (blockDim.x * blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x, 0, 0, &randState);
+
     if(x == 0 && y ==0 ) {
 
 //        printf("rei tex size is %ld \n",info.numVerts);
@@ -76,82 +84,50 @@ __global__ void cudaProcess(const kernelInfo info){
     
     
     
-//    {
-//        vec3 mask = vec3(1.0f, 1.0f, 1.0f); // colour mask
-//        vec3 accucolor = vec3(0.0f, 0.0f, 0.0f); // accumulated colour
-//        vec3 direct = vec3(0, 0, 0);
-//
-//        for (unsigned int d = 0; d < depth; ++d){
-//
-//            int hitSphereIdx = -1;
-//            int hitTriIdx = -1;
-//            int bestTriIdx = -1;
-//            int geomtype = -1;
-//            float hitSphereDist = 1e20;
-//            float hitDistance = 1e20;
-//            float scene_t = 1e20;
-//            vec3 objcol = vec3(0, 0, 0);
-//            vec3 emit = vec3(0, 0, 0);
-//            vec3 hitpoint; // intersection point
-//            vec3 n; // normal
-//            vec3 nl; // oriented normal
-//            vec3 nextdir; // ray direction of next path segment
-//            vec3 trinormal = vec3(0, 0, 0);
-//            Refl refltype;
-//            float ray_tmin = 0.00001f; // set to 0.01f when using refractive material
-//            float ray_tmax = 1e20;
-//
-//            // intersect all triangles in the scene stored in BVH
-//
-//            int debugbingo = 0;
-//            intersectBVHandTriangles(make_float4(rayorig.x, rayorig.y, rayorig.z, ray_tmin), make_float4(raydir.x, raydir.y, raydir.z, ray_tmax),
-//                                     gpuNodes, gpuTriWoops, gpuDebugTris, gpuTriIndices, bestTriIdx, hitDistance, debugbingo, trinormal, leafcount, tricount, false);
-//
-//            //DEBUGintersectBVHandTriangles(make_float4(rayorig.x, rayorig.y, rayorig.z, ray_tmin), make_float4(raydir.x, raydir.y, raydir.z, ray_tmax),
-//            //gpuNodes, gpuTriWoops, gpuDebugTris, gpuTriIndices, bestTriIdx, hitDistance, debugbingo, trinormal, leafcount, tricount, false);
-//
-//
-//            // intersect all spheres in the scene
-//
-//            // float3 required for sphere intersection (to avoid "dynamic allocation not allowed" error)
-//            float3 rayorig_flt3 = make_float3(rayorig.x, rayorig.y, rayorig.z);
-//            float3 raydir_flt3 = make_float3(raydir.x, raydir.y, raydir.z);
-//
-//            float numspheres = sizeof(spheres) / sizeof(Sphere);
-//            for (int i = int(numspheres); i--;)  // for all spheres in scene
-//                // keep track of distance from origin to closest intersection point
-//                if ((hitSphereDist = spheres[i].intersect(Ray(rayorig_flt3, raydir_flt3))) && hitSphereDist < scene_t && hitSphereDist > 0.01f){
-//                    scene_t = hitSphereDist; hitSphereIdx = i; geomtype = 1; }
-//
-//            if (hitDistance < scene_t && hitDistance > ray_tmin) // triangle hit
-//            {
-//                scene_t = hitDistance;
-//                hitTriIdx = bestTriIdx;
-//                geomtype = 2;
-//            }
-//
-//            // sky gradient colour
-//            //float t = 0.5f * (raydir.y + 1.2f);
-//            //vec3 skycolor = vec3(1.0f, 1.0f, 1.0f) * (1.0f - t) + vec3(0.9f, 0.3f, 0.0f) * t;
-//
-//
-//            // SPHERES:
-//            if (geomtype == 1){
-//                Sphere &hitsphere = spheres[hitSphereIdx]; // hit object with closest intersection
-//                hitpoint = rayorig + raydir * scene_t;  // intersection point on object
-//                n = vec3(hitpoint.x - hitsphere.pos.x, hitpoint.y - hitsphere.pos.y, hitpoint.z - hitsphere.pos.z);	// normal
-//                n.normalize();
-//                nl = dot(n, raydir) < 0 ? n : n * -1; // correctly oriented normal
-//                objcol = vec3(hitsphere.col.x, hitsphere.col.y, hitsphere.col.z);   // object colour
-//                emit = vec3(hitsphere.emi.x, hitsphere.emi.y, hitsphere.emi.z);  // object emission
-//                refltype = hitsphere.refl;
-//                accucolor += (mask * emit);
-//            }
-//
-//            // TRIANGLES:
-//            if (geomtype == 2){
-//
-//                //pBestTri = &pTriangles[triangle_id];
+    {
+        vec3 mask = vec3(1.0f, 1.0f, 1.0f); // colour mask
+        vec3 accucolor = vec3(0.0f, 0.0f, 0.0f); // accumulated colour
+        vec3 direct = vec3(0, 0, 0);
+
+        for (unsigned int d = 0; d < depth; ++d){
+
+            int minSphereIdx = -1;
+            int minBoxId = -1;
+            int minTriIdx = -1;
+            int geomtype = GeoType::NONE;
+            float scene_t = 1e20;
+            vec3 objcol = vec3(0, 0, 0);
+            vec3 emit = vec3(0, 0, 0);
+            vec3 hitpos;//pos in 3d where ray hit the closest
+
+            vec3 n; // normal
+            vec3 nl; // oriented normal
+            vec3 nextdir; // ray direction of next path segment
+            vec3 trinormal = vec3(0, 0, 0);
+            Mat mat;
+            //TODO this magic num
+            float tmin = 0.00001f; // set to 0.01f when using refractive material
+            float tmax = 1e20;
+
+            intersectAllTriangles(triTex,camRay,scene_t,minTriIdx,triTexSize,geomtype,info.cullBackFaces);
+            intersectAllSpeheres(sphereTex,camRay,scene_t,minSphereIdx,sphTexSize,geomtype);
+
+            if(geomtype == GeoType::SPHERE){
+                const Sphere & hS = sphereTex[minSphereIdx];
+                hitpos = camRay.origin+camRay.dir*scene_t;
+                vec3 n = hS.getNormal(hitpos);
+
+                //TODO see this inversion later for culling
+                vec3 nl = glm::dot(n, camRay.dir) < 0 ? n : n * -1.0f;
+                objcol = vec3(hS.col.x, hS.col.y,hS.col.z);   // object colour
+                emit = vec3(hS.emi.x, hS.emi.y, hS.emi.z);  // object emission
+                mat = hS.mat;
+                accucolor += (mask * emit);
+
+            }
+            else if(geomtype == GeoType::TRI){
+                r = 128;
+//                pBestTri = &triTex[hitTriIdx];
 //                hitpoint = rayorig + raydir * scene_t; // intersection point
 //
 //                // float4 normal = tex1Dfetch(triNormalsTexture, pBestTriIdx);
@@ -164,13 +140,25 @@ __global__ void cudaProcess(const kernelInfo info){
 //                objcol = colour;
 //                emit = vec3(0.0, 0.0, 0);  // object emission
 //                accucolor += (mask * emit);
-//            }
-//
-//            // basic material system, all parameters are hard-coded (such as phong exponent, index of refraction)
-//
-//            // diffuse material, based on smallpt by Kevin Beason
-//            if (refltype == DIFF){
-//
+
+            }
+            else if(geomtype == GeoType::BOX){
+//                Box &box = boxes[box_id];
+//                x = r.orig + r.dir*t;  // intersection point on object
+//                n = normalize(box.normalAt(x)); // normal
+//                nl = dot(n, r.dir) < 0 ? n : n * -1;  // correctly oriented normal
+//                f = box.col;  // box colour
+//                refltype = box.refl;
+//                emit = box.emi; // box emission
+//                accucolor += (mask * emit);
+
+
+            }
+
+
+
+            if (mat == DIFF){
+
 //                // pick two random numbers
 //                float phi = 2 * M_PI * curand_uniform(randstate);
 //                float r2 = curand_uniform(randstate);
@@ -190,8 +178,8 @@ __global__ void cudaProcess(const kernelInfo info){
 //
 //                // multiply mask with colour of object
 //                mask *= objcol;
-//
-//            } // end diffuse material
+
+            } // end diffuse material
 //
 //            // Phong metal material from "Realistic Ray Tracing", P. Shirley
 //            if (refltype == METAL){
@@ -234,11 +222,11 @@ __global__ void cudaProcess(const kernelInfo info){
 //                // multiply mask with colour of object
 //                mask *= objcol;
 //            }
-//
-//
-//            // COAT material based on https://github.com/peterkutz/GPUPathTracer
-//            // randomly select diffuse or specular reflection
-//            // looks okay-ish but inaccurate (no Fresnel calculation yet)
+
+
+            // COAT material based on https://github.com/peterkutz/GPUPathTracer
+            // randomly select diffuse or specular reflection
+            // looks okay-ish but inaccurate (no Fresnel calculation yet)
 //            if (refltype == COAT){
 //
 //                float rouletteRandomFloat = curand_uniform(randstate);
@@ -282,9 +270,9 @@ __global__ void cudaProcess(const kernelInfo info){
 //                    mask *= objcol;
 //                }
 //            } // end COAT
-//
-//            // perfectly refractive material (glass, water)
-//            // set ray_tmin to 0.01 when using refractive material
+
+            // perfectly refractive material (glass, water)
+            // set ray_tmin to 0.01 when using refractive material
 //            if (refltype == REFR){
 //
 //                bool into = dot(n, nl) > 0; // is ray entering or leaving refractive material?
@@ -340,81 +328,81 @@ __global__ void cudaProcess(const kernelInfo info){
 //            // set up origin and direction of next path segment
 //            rayorig = hitpoint;
 //            raydir = nextdir;
-//        } // end bounces for loop
-//
-//
-//    }
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    {
-        float t;
-        int triangle_id;
-        int geomtype = -1;
-
-        float tmin = 1e20;
-        float tmax = -1e20;
-
-        float d = 1e21;
-        float k = 1e21;
-        float q = 1e21;
-        float inf = t = 1e20;
-
-
-
-
-
-        // if ray hits bounding box of triangle meshes, intersect ray with all triangles
-        //TODO insert bounding box here
-        intersectAllTriangles(triTex,camRay, t, triangle_id, triTexSize, geomtype,info.cullBackFaces);
-
-
-
-
-
-
-        if(t<inf){
-            t = min(45.0f,t);
-            t-=15;
-            t/=30;
-            r = 255*t;
-            g = 0;
-            b = 0;
-            a = 255;
         }
+
+
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+//    {
+//        float t;
+//        int triangle_id;
+//        int geomtype = -1;
+//
+//        float tmin = 1e20;
+//        float tmax = -1e20;
+//
+//        float d = 1e21;
+//        float k = 1e21;
+//        float q = 1e21;
+//        float inf = t = 1e20;
+//
+//
+//
+//
+//
+//        // if ray hits bounding box of triangle meshes, intersect ray with all triangles
+//        //TODO insert bounding box here
+//        intersectAllTriangles(triTex,camRay, t, triangle_id, triTexSize, geomtype,info.cullBackFaces);
+//
+//
+//
+//
+//
+//
+//        if(t<inf){
+//            t = min(45.0f,t);
+//            t-=15;
+//            t/=30;
+//            r = 255*t;
+//            g = 0;
+//            b = 0;
+//            a = 255;
+//        }
 
 
 
 //         t is distance to closest intersection of ray with all primitives in the scene (spheres, boxes and triangles)
 //        return t<inf;
 
-    }
+//    }
 
 
 
@@ -435,7 +423,6 @@ __global__ void cudaProcess(const kernelInfo info){
 
 
     uchar4 c4 = make_uchar4(r, g, b, a);
-//    uchar4 c4
     info.dev_drawRes[pixelPos] = rgbToUint(c4.x,c4.y,c4.z);
 
 }

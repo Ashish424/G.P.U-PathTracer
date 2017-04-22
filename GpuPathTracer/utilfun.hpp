@@ -25,6 +25,7 @@ struct TriMesh{
     //TODO add bounding box
 };
 
+
 namespace uf {
     struct GpuTimer
     {
@@ -93,6 +94,9 @@ namespace uf {
     //TODO make this a struct with bounding box and other stuff
     //load obj objects
     TriMesh loadTris(const char *filename);
+
+
+    uint64_t hash(uint64_t key);
 
 }
 #endif //GPUPROJECT_UTILS_HPP

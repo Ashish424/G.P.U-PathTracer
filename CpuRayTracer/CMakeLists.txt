@@ -11,7 +11,6 @@ if(OPENMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_SOURCE_DIR}/bin)
 set(SOURCE_FILES
         src/main.cpp
         src/material.cpp
@@ -26,10 +25,11 @@ set(SOURCE_FILES
         lib/tiny_obj_loader/tiny_obj_loader.cc)
 file(GLOB SOURCE_HEADERS "src/*.hpp")
 
-add_executable(pathtracer ${SOURCE_FILES} ${SOURCE_HEADERS}  ${DEPS_SOURCES})
-target_link_libraries(pathtracer glfw ${GLFW_LIBRARIES} -ldl )
+add_executable(CpuPathTracer ${SOURCE_FILES} ${SOURCE_HEADERS}  ${DEPS_SOURCES})
+target_link_libraries(CpuPathTracer glfw ${GLFW_LIBRARIES} ${PLATFORM_LINK_GLAD})
+set_target_properties(CpuPathTracer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CpuPathTracer)
 # copy shader files to build directory
 file(GLOB OBJECTS
         "obj/*"
         )
-file(COPY ${OBJECTS} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/obj)
+file(COPY ${OBJECTS} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CpuPathTracer/obj)

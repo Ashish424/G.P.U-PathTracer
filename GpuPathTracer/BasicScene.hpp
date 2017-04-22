@@ -10,6 +10,8 @@
 #include <vector_types.h>
 #include <glm/glm.hpp>
 #include <cstring>
+#include "utilfun.hpp"
+#include "CommomStructs.hpp"
 
 class GLFWwindow;
 struct tex1DInfo{
@@ -36,13 +38,18 @@ struct CamInfo{
 void setPitchAndRoll(CamInfo & cam,float xoffset, float yoffset);
 struct kernelInfo{
     dim3 blockSize;
+    uint64_t hash = 0;
     unsigned int * dev_drawRes;
     int width,height;
     CamInfo cam;
     glm::vec4 *  triangleTex = nullptr;
     size_t numVerts = 0;
+    Sphere *  sphereTex = nullptr;
+    size_t numSpheres = 0;
+
     bool cullBackFaces = true;
     unsigned int depth = 1;
+
 };
 class BasicScene{
 public:
@@ -58,9 +65,8 @@ private:
     void draw();
     void launchKernel(const kernelInfo & info);
 
-
+//opengl stuff
 private:
-    //opengl stuff
     GLFWwindow * mainWindow;
     struct Quad{
        GLuint tex,vao,vbo,program;GLint texUniform;
@@ -68,13 +74,17 @@ private:
     struct cudaGraphicsResource *cudaTexResource;
 
 
+
+
     //the cuda image to use for drawing
     unsigned int * cudaDestResource;
     int width,height;
 
-    //cuda triangles texture
-    tex1DInfo trianglesTex;
+//cuda triangles texture
+//cuda spheres texture
+private:
     glm::vec4 * gpuTris = nullptr;
+    Sphere * gpuSpheres = nullptr;
 private:
 
     void update(double delta);
@@ -87,7 +97,6 @@ private:
         double lastX,lastY;
         BasicScene & prtScn;
     }updater;
-//    void update(double delta);
 
 };
 

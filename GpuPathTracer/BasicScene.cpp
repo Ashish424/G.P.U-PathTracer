@@ -17,6 +17,7 @@
 #include <thrust/device_vector.h>
 
 
+#include "CommomStructs.hpp"
 
 
 
@@ -80,7 +81,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 //        glfwSetCursorPosCallback(mainWindow, mousePosCallback);
         glfwSetKeyCallback(mainWindow, keyCallback);
         glfwSetScrollCallback(mainWindow, scrollCallback);
-        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
     if(!uf::initGlad()){
@@ -138,7 +139,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     }
     //TODO deletions here too
 
-    size_t numVerts = 0;
+    size_t numVerts = 0,numSpheres = 0;
     //TODO move this to main and just copy to gpu here
     //cuda texture for triangles
     {
@@ -149,16 +150,6 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         thrust::host_vector<vec4> cpuTris1(currentMesh.ve);
 
         cout << "num verts: " << cpuTris1.size()<< endl;
-
-//        thrust::host_vector<vec4> cpuTris1(uf::loadTris("filename.obj"));
-//        thrust::host_vector<vec4> cpuTris2(uf::loadTris("filename.obj"));
-//        thrust::host_vector<float4> cpuTris1(800*600);
-//        thrust::host_vector<vec4> cpuTris2(1000);
-//        for(size_t i = 0;i<cpuTris1.size();++i){
-//            cpuTris1[i] = make_float4(rand()/(float)RAND_MAX,rand()/(float)RAND_MAX,rand()/(float)RAND_MAX,rand()/(float)RAND_MAX);
-//        }
-//        cpuTris1.insert(cpuTris1.end(), cpuTris2.begin(), cpuTris2.end());
-
         //TODO see if pinned memory here
         cudaMalloc(&gpuTris,sizeof(vec4)*cpuTris1.size());
         cudaMemcpy(gpuTris,thrust::raw_pointer_cast(&cpuTris1[0]),sizeof(vec4)*cpuTris1.size(),cudaMemcpyHostToDevice);
@@ -181,6 +172,22 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
         numVerts = cpuTris1.size();
     }
+
+
+    //load up spheres
+    {
+
+        using glm::vec4;
+        //vec4 contains sphere pos and radius
+        float rad= 30.0f;
+        thrust::host_vector<Sphere> spheres;
+        spheres.push_back(Sphere(vec4(0.0f, 0,-40,rad/2)));
+        //TODO see if pinned memory here
+        cudaMalloc(&gpuSpheres,sizeof(Sphere)*spheres.size());
+        cudaMemcpy(gpuSpheres,thrust::raw_pointer_cast(&spheres[0]),sizeof(Sphere)*spheres.size(),cudaMemcpyHostToDevice);
+        numSpheres = spheres.size();
+
+    }
 //    kernel default parameters
     {
         info.dev_drawRes = cudaDestResource;
@@ -188,9 +195,10 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         info.height = height;
         info.blockSize = dim3(16,16,1);
         info.triangleTex = gpuTris;
-//        info.triangleTex = trianglesTex.textureObject;
         info.numVerts = numVerts;
-        info.cullBackFaces = false;
+        info.sphereTex = gpuSpheres;
+        info.numSpheres = numSpheres;
+        info.cullBackFaces = true;
         info.depth = 1;
     }
 
@@ -263,8 +271,9 @@ BasicScene::~BasicScene() {
 
     //destroy triangles texture
     {
-        checkCudaErrors(cudaDestroyTextureObject(trianglesTex.textureObject));
+//        checkCudaErrors(cudaDestroyTextureObject(trianglesTex.textureObject));
         checkCudaErrors(cudaFree(gpuTris));
+        checkCudaErrors(cudaFree(gpuSpheres));
 
     }
 
@@ -275,6 +284,7 @@ void BasicScene::run() {
     double delta = 0;
     double last = 0;
     glfwSetTime(last);
+    uint64_t frameNumber = 0;
     while (!glfwWindowShouldClose(mainWindow)) {
 
         double curr = glfwGetTime();
@@ -288,7 +298,7 @@ void BasicScene::run() {
         //wait till prev frame done
         checkCudaErrors(cudaStreamSynchronize(0));
 
-
+        info.hash = uf::hash(frameNumber);
 
 
         uf::GpuTimer g;
@@ -317,7 +327,11 @@ void BasicScene::run() {
 
         glfwSwapBuffers(mainWindow);
 
+        ++frameNumber;
     }
+
+
+
 
 
 }

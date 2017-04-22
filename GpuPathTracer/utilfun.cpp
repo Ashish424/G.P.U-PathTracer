@@ -181,7 +181,7 @@ namespace uf {
                 //support for only triangular meshes
 
 
-                assert(face.mNumIndices == 4);
+                assert(face.mNumIndices == 3);
                 glm::vec3 currTri[3];
                 vec3 off = vec3(0,0,-22);
                 for (size_t k = 0; k < 3; ++k) {
@@ -362,6 +362,17 @@ namespace uf {
 
 #endif
 
+    }
+
+    uint64_t hash(uint64_t key) {
+        key = (~key) + (key << 21); // key = (key << 21) - key - 1;
+        key = key ^ (key >> 24);
+        key = (key + (key << 3)) + (key << 8); // key * 265
+        key = key ^ (key >> 14);
+        key = (key + (key << 2)) + (key << 4); // key * 21
+        key = key ^ (key >> 28);
+        key = key + (key << 31);
+        return key;
     }
 
 }

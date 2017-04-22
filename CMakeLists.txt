@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 project(GpuProject)
 set(CMAKE_CXX_STANDARD 11)
-#set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_SOURCE_DIR}/bin)
 
 
@@ -22,6 +21,7 @@ option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(deps/assimp)
 
+add_subdirectory(deps/yaml-cpp)
 
 include_directories(
         "deps/glad/include"
@@ -68,23 +68,12 @@ else(CUDA_FOUND)
 endif()
 
 
+set(PLATFORM_LINK_GLAD)
+if (UNIX)
+    set(PLATFORM_LINK_GLAD -ldl)
+endif (UNIX)
 
 add_subdirectory(CpuRayTracer)
 add_subdirectory(GpuPathTracer)
 
-#C.P.U executable
-#add_executable(cpuTracer src/main.cpp src/Scene.cpp
-#        src/Scene.hpp src/Camera.cpp src/Camera.hpp
-#        ${DEPS_SOURCES})
 
-#cuda_add_executable(
-#        hellocuda
-#        gpu.cpp
-#)
-
-#set(PLATFORM_LINK_GLAD )
-#if (UNIX)
-#    set(PLATFORM_LINK_GLAD -ldl)
-#endif (UNIX)
-
-#target_link_libraries(cpuTracer  Qt5::Widgets ${PLATFORM_LINK_GLAD})

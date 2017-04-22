@@ -2,7 +2,14 @@
 // Created by ashish on 4/6/17.
 //
 
+#include "cuda_runtime.h"
 #include "math_functions.h"
+#include "CommomStructs.hpp"
+#include "BasicScene.hpp"
+#include <glm/glm.hpp>
+
+
+
 
 //TODO move these headers to cudaUtils.cuh file
 
@@ -13,38 +20,18 @@ using glm::vec4;
 
 
 
-enum Refl { DIFF, METAL, SPEC, REFR, COAT };
-struct Ray {
-    vec3 origin,dir;
-    __device__ Ray(vec3 o, vec3 d) : origin(o), dir(d) {}
-};
-struct Sphere {
-    float rad;			// radius
-    vec3 pos, emi, col;	// position, emission, color
-    Refl refl;			// reflection type (DIFFuse, SPECular, REFRactive)
-    __device__ float intersect(const Ray &r) const { // returns distance, 0 if nohit
 
-        // Ray/sphere intersection
-        // Quadratic formula required to solve ax^2 + bx + c = 0
-        // Solution x = (-b +- sqrt(b*b - 4ac)) / 2a
-        // Solve t^2*d.d + 2*t*(o-p).d + (o-p).(o-p)-R^2 = 0
 
-        vec3 op = pos - r.origin;  //
-        float t, epsilon = 0.01f;
-        float b = dot(op, r.dir);
-        float disc = b*b - dot(op, op) + rad*rad; // discriminant
-        if (disc<0) return 0; else disc = sqrtf(disc);
-        return (t = b - disc)>epsilon ? t : ((t = b + disc)>epsilon ? t : 0);
-    }
-    __device__ Sphere(float rad,vec3 pos,vec3 emi,vec3 col,Refl refl):rad(rad),pos(pos),emi(emi),col(col),refl(refl){}
-};
+
+
+
 //struct Box {
 //
 //    vec3 min;
 //    vec3 max;
 //    vec3 emi; // emission
 //    vec3 col; // colour
-//    Refl refl;
+//    Mat refl;
 //
 //    // ray/box intersection
 //    // for theoretical background of the algorithm see
@@ -87,17 +74,19 @@ struct Sphere {
 //};
 
 
-
+__device__ float clamp(float f, float a, float b);
 __device__ int rgbToInt(float r, float g, float b);
 __device__ uint rgbToUint(float r, float g, float b);
-__device__ float4 vtof4(const glm::vec4 & v);
-__device__ glm::vec4 f4tov(const float4 & f4);
 __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const int w,const int h);
-__device__ float3 getTriangleNormal(const cudaTextureObject_t & tex,const size_t triangleIndex);
-__device__ float RayTriangleIntersection(const Ray &r,const float3 &v0,const float3 &edge1,const float3 &edge2,bool cullBackFaces);
-__device__ void intersectAllTriangles(const vec4 * tex ,const Ray& r, float& t_scene, int & triangle_id, const size_t numVerts, int& geomtype);
+//__device__ float3 getTriangleNormal(const cudaTextureObject_t & tex,const size_t triangleIndex);
+__device__ float RayTriangleIntersection(const Ray &r, const vec3 &v0, const vec3 &edge1, const vec3 &edge2,bool cullBackFaces);
+__device__ void intersectAllSpeheres(const vec4 * sphereTex,const Ray & camRay,float& t_scene, int & sphere_id, const size_t numSpheres, int& geomtype);
 
 
+inline __device__ float clamp(float f, float a, float b)
+{
+    return fmaxf(a, fminf(f, b));
+}
 
 
 
@@ -152,17 +141,17 @@ __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const
 
 }
 
-__device__ float3 getTriangleNormal(const cudaTextureObject_t & tex,const size_t triangleIndex){
-
-float4 edge1 = tex1Dfetch<float4>(tex, triangleIndex * 3 + 1);
-float4 edge2 = tex1Dfetch<float4>(tex, triangleIndex * 3 + 2);
-
-// cross product of two triangle edges yields a vector orthogonal to triangle plane
-float3 trinormal = cross(make_float3(edge1.x, edge1.y, edge1.z), make_float3(edge2.x, edge2.y, edge2.z));
-trinormal = normalize(trinormal);
-
-return trinormal;
-}
+//__device__ float3 getTriangleNormal(const cudaTextureObject_t & tex,const size_t triangleIndex){
+//
+//float4 edge1 = tex1Dfetch<float4>(tex, triangleIndex * 3 + 1);
+//float4 edge2 = tex1Dfetch<float4>(tex, triangleIndex * 3 + 2);
+//
+//// cross product of two triangle edges yields a vector orthogonal to triangle plane
+//float3 trinormal = cross(make_float3(edge1.x, edge1.y, edge1.z), make_float3(edge2.x, edge2.y, edge2.z));
+//trinormal = normalize(trinormal);
+//
+//return trinormal;
+//}
 __device__ float RayTriangleIntersection(const Ray &r,
                                          const vec3 &v0,
                                          const vec3 &edge1,
@@ -191,7 +180,7 @@ __device__ float RayTriangleIntersection(const Ray &r,
     return dot(edge2, qvec) * det;
 }
 
-__device__ void intersectAllTriangles(const vec4 * tex ,const Ray& r, float& t_scene, int & triangle_id, const size_t numVerts, int& geomtype,bool cullBackFaces){
+__device__ void intersectAllTriangles(const vec4 * tex ,const Ray& camRay, float& t_scene, int & triangle_id, const size_t numVerts, int& geomtype,bool cullBackFaces){
     size_t numTris = numVerts/3;
 
     for (size_t i = 0; i < numTris; i++)
@@ -200,13 +189,33 @@ __device__ void intersectAllTriangles(const vec4 * tex ,const Ray& r, float& t_s
         vec4 edge1 = tex[i*3+1];
         vec4 edge2 = tex[i*3+2];
 
-        float t = RayTriangleIntersection(r,vec3(v0.x, v0.y, v0.z),
+        float t = RayTriangleIntersection(camRay,vec3(v0.x, v0.y, v0.z),
                                           vec3(edge1.x, edge1.y, edge1.z),
                                           vec3(edge2.x, edge2.y, edge2.z),cullBackFaces);
 
+        //TODO 0.001 magic num
         if (t < t_scene && t > 0.001){
-            t_scene = t;triangle_id = i;geomtype = 3;
+            t_scene = t;triangle_id = i;geomtype = GeoType::TRI;
         }
 
     }
+}
+
+
+
+__device__ void intersectAllSpeheres(const Sphere * sphereTex,const Ray & camRay,float& t_scene, int & sphere_id, const size_t numSpheres, int& geomtype){
+
+
+    //TODO sphere magic number
+    float hitSphereDist = 1e20;
+    for (size_t i = 0; i < numSpheres; i++)
+    {
+        //TODO 0.001 magic num
+            if ((hitSphereDist = sphereTex[i].intersect(camRay)) && hitSphereDist < t_scene && hitSphereDist > 0.01f){
+                t_scene = hitSphereDist; sphere_id = (int)i; geomtype = GeoType::SPHERE;
+            }
+
+    }
+
+
 }
