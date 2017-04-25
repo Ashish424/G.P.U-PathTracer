@@ -81,7 +81,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 //        glfwSetCursorPosCallback(mainWindow, mousePosCallback);
         glfwSetKeyCallback(mainWindow, keyCallback);
         glfwSetScrollCallback(mainWindow, scrollCallback);
-        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+//        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
     if(!uf::initGlad()){
@@ -145,10 +145,13 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
         using glm::vec4;
 
+        uf::loadIndexedTris("./cube.obj");
+        uf::loadIndexedTris("./bunny_low.obj");
 
         TriMesh currentMesh(uf::loadTris("./cornell.obj"));
         thrust::host_vector<vec4> cpuTris1(currentMesh.ve);
 
+//        thrust::host_vector<vec4> cpuTris1;
         cout << "num verts: " << cpuTris1.size()<< endl;
         //TODO see if pinned memory here
         cudaMalloc(&gpuTris,sizeof(vec4)*cpuTris1.size());
@@ -249,21 +252,23 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
 
 
-        auto holdTris(uf::loadIndexedTris("./plane2.obj"));
+//        auto xI = uf::loadTris ("./cube.obj");
 
 
-        SceneMesh scene(holdTris.triIndexes.size(),holdTris.ve.size(),holdTris.triIndexes,holdTris.ve);
+//        auto holdTris(uf::loadIndexedTris(importer,"./cornell.obj"));
 
 
+//        SceneMesh scene(holdTris.triIndexes.size(),holdTris.ve.size(),holdTris.triIndexes,holdTris.ve);
 
-        for(int i = 0;i<holdTris.triIndexes.size();++i){
-            cout << glm::to_string(holdTris.triIndexes[i].vertices) << endl;
 
-        }
-        Platform defaultplatform;
-        BVH::BuildParams defaultparams;
-        BVH::Stats stats;
-        BVH myBVH(&scene, defaultplatform, defaultparams);
+//        for(int i = 0;i<holdTris.triIndexes.size();++i){
+//            cout <<"index verts " << glm::to_string(holdTris.triIndexes[i].vertices) << endl;
+//
+//        }
+//        Platform defaultplatform;
+//        BVH::BuildParams defaultparams;
+//        BVH::Stats stats;
+//        BVH myBVH(&scene, defaultplatform, defaultparams);
 
 
 //        checkCudaErrors(cudaMalloc(&info.bvhData.dev_triindicesTpr,sizeof()));

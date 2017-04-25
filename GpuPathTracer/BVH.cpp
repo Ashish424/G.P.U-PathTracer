@@ -16,7 +16,7 @@ BVH::BVH(SceneMesh* meshes, const Platform& platform, const BuildParams& params)
 
     // SplitBVHBuilder() builds the actual BVH
     m_root = SplitBVHBuilder(*this, params).run();
-//
+
 //    if (params.enablePrints)
 //        printf("BVH: Scene bounds: (%.1f,%.1f,%.1f) - (%.1f,%.1f,%.1f)\n", m_root->m_bounds.min().x, m_root->m_bounds.min().y, m_root->m_bounds.min().z,
 //               m_root->m_bounds.max().x, m_root->m_bounds.max().y, m_root->m_bounds.max().z);

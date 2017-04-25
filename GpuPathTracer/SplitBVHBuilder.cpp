@@ -9,9 +9,9 @@
 using glm::vec3;
 using glm::ivec3;
 //helper function
-inline float getVecFloat(const glm::vec3 &a, int dim) { if(dim == 0)return a.x; else if(dim == 1)return a.y; else if(dim == 3)return a.z; else assert(false); }
-inline int getVecInt(const glm::ivec3 &a, int dim) { if(dim == 0)return a.x; else if(dim == 1)return a.y; else if(dim == 3)return a.z; else assert(false);  }
-inline void setVecFloat(glm::vec3 &a, int dim, float val){ if(dim == 0) a.x = val; else if(dim == 1) a.y = val; else if(dim == 3)a.z = val; else assert(false); }
+inline float getVecFloat(const glm::vec3 &a, int dim) { if(dim == 0)return a.x; else if(dim == 1)return a.y; else if(dim == 2)return a.z; else assert(false); }
+inline int getVecInt(const glm::ivec3 &a, int dim) { if(dim == 0)return a.x; else if(dim == 1)return a.y; else if(dim == 2)return a.z; else assert(false);  }
+inline void setVecFloat(glm::vec3 &a, int dim, float val){ if(dim == 0) a.x = val; else if(dim == 1) a.y = val; else if(dim == 2)a.z = val; else assert(false); }
 SplitBVHBuilder::SplitBVHBuilder(BVH& bvh, const BVH::BuildParams& params)
         : m_bvh(bvh),
           m_platform(bvh.getPlatform()),

@@ -22,8 +22,8 @@ using std::cout;
 using std::endl;
 using glm::vec3;
 using glm::vec4;
-#define USE_ASSIMP
-//#define USE_TINY
+//#define USE_ASSIMP
+#define USE_TINY
 //#define USE_NONE
 namespace uf {
     GLFWwindow *createWindow(int width, int height, const char *title) {
@@ -162,13 +162,14 @@ namespace uf {
 
 
 #ifdef USE_ASSIMP
+        Assimp::Importer imp;
 
         TriMesh sendMesh;
-        Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+        thrust::host_vector<glm::ivec3> temp;
+        const aiScene* scene = imp.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
+            cout << "ERROR::ASSIMP::" << imp.GetErrorString() << endl;
             exit(1);
         }
         // Process all the node's meshes (if any)
@@ -199,8 +200,18 @@ namespace uf {
                 sendMesh.ve.push_back(v14);
                 sendMesh.ve.push_back(v24);
 
+                temp.push_back(glm::ivec3(face.mIndices[0],face.mIndices[1],face.mIndices[2]));
+
             }
 
+        }
+
+
+
+        cout << "vert info" << scene->mMeshes[0]->mNumVertices << endl;
+        cout << "face info" << temp.size() << endl;
+        for (int l = 0; l < temp.size(); ++l) {
+            cout << "printing stuff" << glm::to_string(temp[l])<< endl;
         }
 
 
@@ -383,17 +394,20 @@ namespace uf {
 
 
     IndexedTriMesh loadIndexedTris(const char *filename){
+
+#ifdef USE_ASSIMP
         IndexedTriMesh sendMesh;
-        Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+        Assimp::Importer imp;
+
+        const aiScene* scene = imp.ReadFile(std::string(filename),0);
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
+            cout << "ERROR::ASSIMP::" << imp.GetErrorString() << endl;
             exit(1);
         }
         // Process all the node's meshes (if any)
         cout <<"num meshes"<< scene->mNumMeshes << endl;
-        for(size_t i = 0; i < scene->mNumMeshes; i++) {
+        for(size_t i = 0; i < scene->mNumMeshes; ++i) {
             auto currMesh = scene->mMeshes[i];
             size_t numFaces = currMesh->mNumFaces;
             for (size_t j = 0; j < numFaces; ++j) {
@@ -403,21 +417,118 @@ namespace uf {
                 assert(face.mNumIndices == 3);
                 sendMesh.triIndexes.push_back(SceneMesh::Triangle(glm::ivec3(face.mIndices[0],face.mIndices[1],face.mIndices[2])));
 
-
             }
+
+
             for(size_t  m = 0;m<currMesh->mNumVertices;++m){
                 aiVector3D pos = currMesh->mVertices[m];
                 vec3 off = vec3(0,0,-22);
-                sendMesh.ve.push_back(glm::vec3(pos.x,pos.y,pos.y)+off);
+                sendMesh.ve.push_back(glm::vec3(pos.x,pos.y,pos.z)+off);
+                cout << "vertex is is "<<glm::to_string(sendMesh.ve[m]) << endl;
             }
 
         }
 
+//        cout <<"print verts here" <<scene->mMeshes[0]->mNumVertices << endl;
+
+//        for(int i = 0;i<sendMesh.ve.size();++i){
+//            cout << glm::to_string(sendMesh.ve[i])<< endl;
+//        }
+//        for(int i = 0;i<sendMesh.triIndexes.size();++i){
+//            cout <<"index verts " << glm::to_string(sendMesh.triIndexes[i].vertices)<< endl;
+//        }
+
+
+
+
         cout <<"verts num" << sendMesh.ve.size() << endl;
-        cout << "indexes num"<<sendMesh.triIndexes.size() << endl;
+        cout <<"verts num" << sendMesh.triIndexes.size() << endl;
+
+//        cout << "indexes num"<<sendMesh.triIndexes.size() << endl;
 
 
         return sendMesh;
+
+#endif
+
+
+
+
+        IndexedTriMesh sendMesh;
+        std::ifstream in(filename);
+
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+
+        std::string err;
+        tinyobj::attrib_t attribs;
+        bool ret = tinyobj::LoadObj(&attribs,&shapes, &materials, &err, filename);
+
+        if (!err.empty()) { // `err` may contain warning message.
+            std::cout << err << std::endl;
+        }
+
+        if (!ret) {
+            std::cout << "error in tinyObj"<< std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+
+        assert(shapes.size() == 1);
+
+        for (size_t f = 0; f < attribs.vertices.size()/3; ++f) {
+
+            //TODO this offset hardcoded remove
+            vec3 off = vec3(0,0,-21);
+            sendMesh.ve.push_back(glm::vec3(attribs.vertices[0+3*f],attribs.vertices[1+3*f],attribs.vertices[2+3*f])+off);
+        }
+
+            for (size_t i = 0; i < shapes.size(); ++i) {
+            assert((shapes[i].mesh.indices.size() % 3) == 0);
+            for (size_t f = 0; f < shapes[i].mesh.indices.size() / 3; ++f) {
+
+                vec4 currTri[3];
+                vec4 currTriNorm[3];
+
+
+                int in1 = shapes[i].mesh.indices[3*f+0].vertex_index;
+                int in2 = shapes[i].mesh.indices[3*f+1].vertex_index;
+                int in3 = shapes[i].mesh.indices[3*f+2].vertex_index;
+
+//                    currTriNorm[k] = vec4(nX,nY,nZ,0);
+
+                sendMesh.triIndexes.push_back(SceneMesh::Triangle(glm::ivec3(in1,in2,in3)));
+
+
+
+
+//                sendMesh.normals.push_back(currTriNorm[0]);
+//                sendMesh.normals.push_back(currTriNorm[1]);
+//                sendMesh.normals.push_back(currTriNorm[2]);
+
+
+
+
+            }
+        }
+        //TODO disable this debugging info later
+        std::cout << "# of shapes    : " << shapes.size() << std::endl;
+        std::cout << "# of indexes    : " << sendMesh.triIndexes.size() << std::endl;
+        std::cout << "# of verts : " << sendMesh.ve.size()<< std::endl;
+
+
+        for (int i = 0; i < sendMesh.ve.size(); ++i) {
+            cout <<"verts " << glm::to_string(sendMesh.ve[i]) << endl;
+        }
+        for (int i = 0; i < sendMesh.triIndexes.size(); ++i) {
+            cout << "indexes "<< glm::to_string(sendMesh.triIndexes[i].vertices) << endl;
+        }
+
+
+
+        return sendMesh;
+
+
 
 
 

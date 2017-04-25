@@ -111,8 +111,6 @@ namespace uf {
     IndexedTriMesh loadIndexedTris(const char *filename);
 
 
-
-
     uint64_t hash(uint64_t key);
 
 }
