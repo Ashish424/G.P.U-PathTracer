@@ -249,11 +249,17 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
 
 
-        auto holdTris(uf::loadIndexedTris("./cornell.obj"));
-
+        auto holdTris(uf::loadIndexedTris("./plane2.obj"));
 
 
         SceneMesh scene(holdTris.triIndexes.size(),holdTris.ve.size(),holdTris.triIndexes,holdTris.ve);
+
+
+
+        for(int i = 0;i<holdTris.triIndexes.size();++i){
+            cout << glm::to_string(holdTris.triIndexes[i].vertices) << endl;
+
+        }
         Platform defaultplatform;
         BVH::BuildParams defaultparams;
         BVH::Stats stats;

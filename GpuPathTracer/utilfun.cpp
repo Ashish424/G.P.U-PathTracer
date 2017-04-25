@@ -392,6 +392,7 @@ namespace uf {
             exit(1);
         }
         // Process all the node's meshes (if any)
+        cout <<"num meshes"<< scene->mNumMeshes << endl;
         for(size_t i = 0; i < scene->mNumMeshes; i++) {
             auto currMesh = scene->mMeshes[i];
             size_t numFaces = currMesh->mNumFaces;
@@ -400,7 +401,7 @@ namespace uf {
                 const aiFace &face = currMesh->mFaces[j];
                 //support for only triangular meshes
                 assert(face.mNumIndices == 3);
-                sendMesh.triIndexes.push_back(SceneMesh::Triangle(vec3(face.mIndices[0],face.mIndices[1],face.mIndices[2])));
+                sendMesh.triIndexes.push_back(SceneMesh::Triangle(glm::ivec3(face.mIndices[0],face.mIndices[1],face.mIndices[2])));
 
 
             }

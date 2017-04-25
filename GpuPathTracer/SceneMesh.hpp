@@ -15,7 +15,7 @@ public:
     {
         glm::ivec3       vertices;   //3 vertex indices of triangle
         glm::vec3       normal;
-        Triangle(const glm::vec3 & vertices) : vertices(vertices){}
+        Triangle(const glm::ivec3 & vertices) : vertices(vertices){}
 //                , normal(glm::vec3(0, 0, 0)) {}
     };
 
