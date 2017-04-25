@@ -22,7 +22,7 @@ set(SOURCE_FILES
         src/renderer.cpp
         lib/rand48/rand48.c
         lib/lodepng/lodepng.cpp
-        lib/tiny_obj_loader/tiny_obj_loader.cc)
+        lib/tiny_obj_loader/tiny_obj_loader.cc )
 file(GLOB SOURCE_HEADERS "src/*.hpp")
 
 add_executable(CpuPathTracer ${SOURCE_FILES} ${SOURCE_HEADERS}  ${DEPS_SOURCES})

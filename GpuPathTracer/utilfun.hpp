@@ -13,16 +13,18 @@
 #include <cuda_runtime.h>
 #include <thrust/host_vector.h>
 #include <glm/vec4.hpp>
+#include <glm/vec3.hpp>
 
 class GLFWwindow;
 
 
 struct TriMesh{
+
     //vertex and two edges
     thrust::host_vector<glm::vec4> ve;
     thrust::host_vector<glm::vec4> normals;
-
     //TODO add bounding box
+
 };
 
 
