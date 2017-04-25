@@ -20,7 +20,7 @@ public:
         void clear()        { memset(this, 0, sizeof(Stats)); }
         void print() const  {} //printf("Tree stats: [bfactor=%d] %d nodes (%d+%d), %.2f SAHCost, %.1f children/inner, %.1f tris/leaf\n", branchingFactor, numLeafNodes + numInnerNodes, numLeafNodes, numInnerNodes, SAHCost, 1.f*numChildNodes / max1i(numInnerNodes, 1), 1.f*numTris / max1i(numLeafNodes, 1)); }
 
-        float     SAHCost;           // Surface Area Heuristic cost
+        float   SAHCost;           // Surface Area Heuristic cost
         int     branchingFactor;
         int     numInnerNodes;
         int     numLeafNodes;
@@ -45,7 +45,7 @@ public:
 
 public:
     BVH(SceneMesh* meshes, const Platform& platform, const BuildParams& params);
-    ~BVH(void)                  { if (m_root) m_root->deleteSubtree(); }
+    ~BVH(void)                  { if (m_root!= nullptr) m_root->deleteSubtree(); }
 
     SceneMesh*              getSceneMesh(void) const           { return m_meshes; }
     const Platform&     getPlatform(void) const        { return m_platform; }
@@ -59,7 +59,7 @@ private:
     SceneMesh*              m_meshes;
     Platform            m_platform;
 
-    BVHNode*            m_root;
+    BVHNode*            m_root = nullptr;
     std::vector<int>        m_triIndices;
 };
 

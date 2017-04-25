@@ -13,7 +13,7 @@ using glm::vec3;
 static int woopcount = 0;
 
 template <typename T>
-inline void addPtrToVec(thrust::host_vector<T> &arr, T *ptr, int size){
+inline void addPtrToVec(std::vector<T> &arr, T *ptr, int size){
     if(!size)return;
     else {
         for(int i = 0; i < size; i++){
@@ -103,13 +103,13 @@ void CudaBVH::createCompact(const BVH& bvh, int nodeOffsetSizeDiv)
 
     // construct and initialize data arrays which will be copied to CudaBVH buffers (last part of this function).
     //TODO:  Taken assumption
-    thrust::host_vector<ivec4> nodeData(4);
-    thrust::host_vector<ivec4> triWoopData;
-    thrust::host_vector<ivec4> triDebugData; // array for regular (non-woop) triangles
-    thrust::host_vector<int> triIndexData;
+    std::vector<ivec4> nodeData(4);
+    std::vector<ivec4> triWoopData;
+    std::vector<ivec4> triDebugData; // array for regular (non-woop) triangles
+    std::vector<int> triIndexData;
 
     // construct a stack (array of stack entries) to help in filling the data arrays
-    thrust::host_vector<StackEntry> stack;
+    std::vector<StackEntry> stack;
     stack.push_back(StackEntry(bvh.getRoot(), 0));// initialise stack to rootnode
 
     while (stack.size()) // while stack is not empty
@@ -254,7 +254,7 @@ void CudaBVH::woopifyTri(const BVH& bvh, int triIdx)
 
     // fetch the 3 vertex indices of this triangle
     const ivec3& vtxInds = bvh.getSceneMesh()->getTriangle(bvh.getTriIndices()[triIdx]).vertices;
-    thrust::host_vector<vec3> &vertices = bvh.getSceneMesh()->m_verts;
+    std::vector<vec3> &vertices = bvh.getSceneMesh()->m_verts;
     const vec3& v0 = vec3(vertices[vtxInds[0]].x, vertices[vtxInds[0]].y, vertices[vtxInds[0]].z); // vtx xyz pos voor eerste triangle vtx
     //const vec3& v1 = bvh.getScene()->getVertex(vtxInds.y);
     const vec3& v1 = vec3(vertices[vtxInds[1]].x, vertices[vtxInds[1]].y, vertices[vtxInds[1]].z); // vtx xyz pos voor tweede triangle vtx

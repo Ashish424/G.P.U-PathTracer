@@ -18,7 +18,7 @@
 
 
 #include "CommomStructs.hpp"
-
+#include "BVH.hpp"
 
 
 float MouseSensitivity = 0.25f;
@@ -245,8 +245,28 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     }
 
 
+    //TODO move this out later to a struct setup bvh
     {
 
+
+        auto holdTris(uf::loadIndexedTris("./cornell.obj"));
+
+
+
+        SceneMesh scene(holdTris.triIndexes.size(),holdTris.ve.size(),holdTris.triIndexes,holdTris.ve);
+        Platform defaultplatform;
+        BVH::BuildParams defaultparams;
+        BVH::Stats stats;
+        BVH myBVH(&scene, defaultplatform, defaultparams);
+
+
+//        checkCudaErrors(cudaMalloc(&info.bvhData.dev_triindicesTpr,sizeof()));
+//        checkCudaErrors(cudaMalloc());
+
+//        cudaMalloc(info.bvhData.dev_triindicesTpr;
+
+//        info.bvhData.dev_triNode;
+//        info.bvhData.dev_triWoopTpr;
 
 
 

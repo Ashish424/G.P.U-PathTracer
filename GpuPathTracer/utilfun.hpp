@@ -14,6 +14,7 @@
 #include <thrust/host_vector.h>
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
+#include "SceneMesh.hpp"
 
 class GLFWwindow;
 
@@ -26,6 +27,17 @@ struct TriMesh{
     //TODO add bounding box
 
 };
+
+struct IndexedTriMesh{
+
+    std::vector<glm::vec3> ve;
+//    thrust::host_vector<glm::vec3> normals;
+    std::vector<SceneMesh::Triangle> triIndexes;
+
+
+};
+
+
 
 
 namespace uf {
@@ -96,6 +108,9 @@ namespace uf {
     //TODO make this a struct with bounding box and other stuff
     //load obj objects
     TriMesh loadTris(const char *filename);
+    IndexedTriMesh loadIndexedTris(const char *filename);
+
+
 
 
     uint64_t hash(uint64_t key);

@@ -5,7 +5,6 @@
 #ifndef GPUPROJECT_SCENEMESH_HPP
 #define GPUPROJECT_SCENEMESH_HPP
 
-#pragma once
 #include <glm/vec3.hpp>
 #include <vector>
 #include <cassert>
@@ -16,17 +15,18 @@ public:
     {
         glm::ivec3       vertices;   //3 vertex indices of triangle
         glm::vec3       normal;
-        Triangle() : vertices(glm::ivec3(0, 0, 0)), normal(glm::vec3(0, 0, 0)) {}
+        Triangle(const glm::vec3 & vertices) : vertices(vertices){}
+//                , normal(glm::vec3(0, 0, 0)) {}
     };
 
 
-    thrust::host_vector<glm::vec3>         m_verts;
+    std::vector<glm::vec3>         m_verts;
 public:
 
     SceneMesh(const int numTris, const int numVerts, const std::vector<Triangle>& tris, const std::vector<glm::vec3>& verts) :
             m_numTris(numTris), m_numVerts(numVerts), m_tris(tris), m_verts(verts) {}
 
-    ~SceneMesh(void);
+    ~SceneMesh(void){};
 
     int             getNumTriangles(void) const   { return m_numTris; }
     const Triangle* getTrianglePtr(int idx = 0)   { assert(idx >= 0 && idx <= m_numTris); return (const Triangle*)&m_tris[0] + idx; }

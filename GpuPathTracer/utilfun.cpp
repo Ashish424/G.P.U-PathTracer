@@ -202,8 +202,13 @@ namespace uf {
             }
 
         }
-        for(size_t i = 0;i<sendMesh.ve.size();++i)
-            cout <<glm::to_string(sendMesh.ve[i]) << endl;
+
+
+
+
+
+//        for(size_t i = 0;i<sendMesh.ve.size();++i)
+//            cout <<glm::to_string(sendMesh.ve[i]) << endl;
         return sendMesh;
 
 
@@ -373,6 +378,48 @@ namespace uf {
         key = key ^ (key >> 28);
         key = key + (key << 31);
         return key;
+    }
+
+
+
+    IndexedTriMesh loadIndexedTris(const char *filename){
+        IndexedTriMesh sendMesh;
+        Assimp::Importer importer;
+        const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+        if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+        {
+            cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
+            exit(1);
+        }
+        // Process all the node's meshes (if any)
+        for(size_t i = 0; i < scene->mNumMeshes; i++) {
+            auto currMesh = scene->mMeshes[i];
+            size_t numFaces = currMesh->mNumFaces;
+            for (size_t j = 0; j < numFaces; ++j) {
+
+                const aiFace &face = currMesh->mFaces[j];
+                //support for only triangular meshes
+                assert(face.mNumIndices == 3);
+                sendMesh.triIndexes.push_back(SceneMesh::Triangle(vec3(face.mIndices[0],face.mIndices[1],face.mIndices[2])));
+
+
+            }
+            for(size_t  m = 0;m<currMesh->mNumVertices;++m){
+                aiVector3D pos = currMesh->mVertices[m];
+                vec3 off = vec3(0,0,-22);
+                sendMesh.ve.push_back(glm::vec3(pos.x,pos.y,pos.y)+off);
+            }
+
+        }
+
+        cout <<"verts num" << sendMesh.ve.size() << endl;
+        cout << "indexes num"<<sendMesh.triIndexes.size() << endl;
+
+
+        return sendMesh;
+
+
+
     }
 
 }
