@@ -32,7 +32,7 @@ struct BVHData{
 
     glm::vec4 * dev_triNode = nullptr;
     glm::vec4 * dev_triWoopTpr = nullptr;
-    glm::vec4 * dev_triindicesTpr = nullptr;
+    int * dev_triindicesTpr = nullptr;
 
 
 };

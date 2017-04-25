@@ -19,6 +19,9 @@
 
 #include "CommomStructs.hpp"
 #include "BVH.hpp"
+#include "CudaBVH.hpp"
+
+
 
 
 float MouseSensitivity = 0.25f;
@@ -146,9 +149,9 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         using glm::vec4;
 
         uf::loadIndexedTris("./cube.obj");
-        uf::loadIndexedTris("./bunny_low.obj");
-
         TriMesh currentMesh(uf::loadTris("./cornell.obj"));
+        uf::loadIndexedTris("./cube.obj");
+
         thrust::host_vector<vec4> cpuTris1(currentMesh.ve);
 
 //        thrust::host_vector<vec4> cpuTris1;
@@ -252,32 +255,47 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
 
 
-//        auto xI = uf::loadTris ("./cube.obj");
+        auto xI = uf::loadTris ("./cube.obj");
 
 
-//        auto holdTris(uf::loadIndexedTris(importer,"./cornell.obj"));
+        auto holdTris(uf::loadIndexedTris("./cornell.obj"));
 
 
-//        SceneMesh scene(holdTris.triIndexes.size(),holdTris.ve.size(),holdTris.triIndexes,holdTris.ve);
+        SceneMesh scene(holdTris.triIndexes.size(),holdTris.ve.size(),holdTris.triIndexes,holdTris.ve);
 
 
-//        for(int i = 0;i<holdTris.triIndexes.size();++i){
-//            cout <<"index verts " << glm::to_string(holdTris.triIndexes[i].vertices) << endl;
-//
-//        }
-//        Platform defaultplatform;
-//        BVH::BuildParams defaultparams;
-//        BVH::Stats stats;
-//        BVH myBVH(&scene, defaultplatform, defaultparams);
+        Platform defaultplatform;
+        BVH::BuildParams defaultparams;
+        BVH::Stats stats;
+        BVH myBVH(&scene, defaultplatform, defaultparams);
+
+        std::cout << "Building CudaBVH\n";
+        //TODO remove layout from arg
+        gpuBVH = new CudaBVH(myBVH,BVHLayout_Compact);
+        //TODO delete gpuBVH
 
 
-//        checkCudaErrors(cudaMalloc(&info.bvhData.dev_triindicesTpr,sizeof()));
-//        checkCudaErrors(cudaMalloc());
+        // allocate and copy scene databuffers to the GPU (BVH nodes, triangle vertices, triangle indices)
+        cudaMalloc((void**)&info.bvhData.dev_triNode, gpuBVH->getGpuNodesSize() * sizeof(vec4));
+        cudaMemcpy(info.bvhData.dev_triNode, gpuBVH->getGpuNodes(), gpuBVH->getGpuNodesSize() * sizeof(vec4), cudaMemcpyHostToDevice);
 
-//        cudaMalloc(info.bvhData.dev_triindicesTpr;
+        cudaMalloc((void**)&info.bvhData.dev_triWoopTpr, gpuBVH->getGpuTriWoopSize() * sizeof(vec4));
+        cudaMemcpy(info.bvhData.dev_triWoopTpr, gpuBVH->getGpuTriWoop(), gpuBVH->getGpuTriWoopSize() * sizeof(vec4), cudaMemcpyHostToDevice);
 
-//        info.bvhData.dev_triNode;
-//        info.bvhData.dev_triWoopTpr;
+        cudaMalloc((void**)&info.bvhData.dev_triindicesTpr, gpuBVH->getGpuTriIndicesSize()* sizeof(int));
+        cudaMemcpy(info.bvhData.dev_triindicesTpr,gpuBVH->getGpuTriIndices(),gpuBVH->getGpuTriIndicesSize() * sizeof(int), cudaMemcpyHostToDevice);
+
+//TODO remove these
+//        cudaRender(cudaNodePtr, cudaTriWoopPtr, cudaTriDebugPtr, cudaTriIndicesPtr, finaloutputbuffer,
+//                   accumulatebuffer, gpuHDRenv, framenumber, hashedframes, nodeSize, leafnode_count, triangle_count, cudaRendercam);
+//        void cudaRender(const float4* cudaNodes, const float4* cudaTriWoops, const float4* cudaDebugTris, const int* cudaTriInds,
+//                        Vec3f* outputbuf, Vec3f* accumbuf, const float4* HDRmap, const unsigned int framenumber, const unsigned int hashedframenumber,
+//                        const unsigned int totalnodecnt, const unsigned int leafnodecnt, const unsigned int tricnt, const Camera* cudaRenderCam);
+
+
+
+        info.bvhData.dev_triNode;
+        info.bvhData.dev_triWoopTpr;
 
 
 
@@ -318,6 +336,7 @@ BasicScene::~BasicScene() {
         checkCudaErrors(cudaFree(gpuSpheres));
 
     }
+
 
     glfwTerminate();
 }

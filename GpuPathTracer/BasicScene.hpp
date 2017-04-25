@@ -14,6 +14,7 @@
 #include "CommomStructs.hpp"
 #include "CpuStructs.hpp"
 class GLFWwindow;
+class CudaBVH;
 
 void setPitchAndRoll(CamInfo & cam,float xoffset, float yoffset);
 
@@ -64,6 +65,8 @@ private:
         BasicScene & prtScn;
     }updater;
 
+
+    CudaBVH * gpuBVH = nullptr;
 
 };
 

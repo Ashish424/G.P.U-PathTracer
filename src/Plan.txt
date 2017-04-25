@@ -13,6 +13,7 @@ profile with nvidia profiler
 Make sure no printing inside critical loops
 Experiment with different data types
 Cleanup code and commented stuff
+remove assimp stuff
 Organize Gpu Code
 
 Prep up the CPU Code
