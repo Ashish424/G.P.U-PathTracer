@@ -245,6 +245,17 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     }
 
 
+    {
+
+
+
+
+
+
+
+    }
+
+
 }
 
 BasicScene::~BasicScene() {

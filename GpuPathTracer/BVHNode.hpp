@@ -22,7 +22,7 @@ enum BVH_STAT
 class AABB
 {
 public:
-    using glm::vec3;
+    typedef glm::vec3 vec3;
     inline                    AABB(void) : m_mn(FW_F32_MAX, FW_F32_MAX, FW_F32_MAX), m_mx(-FW_F32_MAX, -FW_F32_MAX, -FW_F32_MAX) {}
     inline                    AABB(const vec3& mn, const vec3& mx) : m_mn(mn), m_mx(mx) {}
 
