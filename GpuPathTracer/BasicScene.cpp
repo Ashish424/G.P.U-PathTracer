@@ -280,6 +280,11 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         cudaMalloc((void**)&info.bvhData.dev_triIndicesTpr, gpuBVH->getGpuTriIndicesSize()* sizeof(int));
         cudaMemcpy(info.bvhData.dev_triIndicesTpr,gpuBVH->getGpuTriIndices(),gpuBVH->getGpuTriIndicesSize() * sizeof(int), cudaMemcpyHostToDevice);
 
+
+        cudaMalloc((void**)&info.bvhData.dev_triDebugPtr, gpuBVH->getDebugTriSize()* sizeof(vec4));
+        cudaMemcpy(info.bvhData.dev_triDebugPtr,gpuBVH->getDebugTri(),gpuBVH->getDebugTriSize() * sizeof(vec4), cudaMemcpyHostToDevice);
+
+
 //TODO remove these
 //        cudaRender(cudaNodePtr, cudaTriWoopPtr, cudaTriDebugPtr, cudaTriIndicesPtr, finaloutputbuffer,
 //                   accumulatebuffer, gpuHDRenv, framenumber, hashedframes, nodeSize, leafnode_count, triangle_count, cudaRendercam);
@@ -294,6 +299,8 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         info.bvhData.triWoopSize = gpuBVH->getGpuTriWoopSize();
         info.bvhData.leafCount = gpuBVH->getLeafnodeCount();
         info.bvhData.triCount = gpuBVH->getTriCount();
+        info.bvhData.triDebugSize = gpuBVH->getDebugTriSize();
+
 
 
 //        nodeSize = gpuBVH->getGpuNodesSize();

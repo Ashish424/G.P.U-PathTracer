@@ -30,15 +30,17 @@ struct CamInfo{
 struct BVHData{
 
 
-    glm::vec4 * dev_triNode = nullptr;
+    vec4 * dev_triNode = nullptr;
     size_t triNodeSize;
-    glm::vec4 * dev_triWoopTpr = nullptr;
+    vec4 * dev_triWoopTpr = nullptr;
     size_t triWoopSize;
     int * dev_triIndicesTpr = nullptr;
     size_t triIndicesSize;
 
     size_t leafCount;
     size_t triCount;
+    vec4 *dev_triDebugPtr;
+    size_t triDebugSize;
 };
 
 
