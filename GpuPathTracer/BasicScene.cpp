@@ -84,7 +84,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 //        glfwSetCursorPosCallback(mainWindow, mousePosCallback);
         glfwSetKeyCallback(mainWindow, keyCallback);
         glfwSetScrollCallback(mainWindow, scrollCallback);
-//        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
     if(!uf::initGlad()){
@@ -253,7 +253,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
 
 
-        auto holdTris(uf::loadIndexedTris("./cornell.obj"));
+        auto holdTris(uf::loadIndexedTris("./cornell_dragon.obj"));
 
 
         SceneMesh scene(holdTris.triIndexes.size(),holdTris.ve.size(),holdTris.triIndexes,holdTris.ve);

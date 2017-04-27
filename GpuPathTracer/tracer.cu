@@ -120,18 +120,14 @@ __global__ void cudaProcess(const kernelInfo info){
             vec3 trinormal = vec3(0, 0, 0);
             Mat mat;
 
-            intersectAllTriangles(triTex,camRay,scene_t,minTriIdx,triTexSize,geomtype,info.cullBackFaces);
-//            intersectBVHandTriangles(glm::vec4(camRay.origin,tmin),glm::vec4(camRay.dir,0),info.bvhData.dev_triNode,info.bvhData.dev_triWoopTpr, nullptr,info.bvhData.dev_triIndicesTpr,minTriIdx,scene_t,debug,n,info.bvhData.leafCount,info.bvhData.triCount,false);
+//            intersectAllTriangles(triTex,camRay,scene_t,minTriIdx,triTexSize,geomtype,info.cullBackFaces);
+//            intersectBVHandTriangles(glm::vec4(camRay.origin,tmin),glm::vec4(camRay.dir,tmax),info.bvhData.dev_triNode,info.bvhData.dev_triWoopTpr, nullptr,info.bvhData.dev_triIndicesTpr,minTriIdx,scene_t,debug,n,info.bvhData.leafCount,info.bvhData.triCount,false);
 
-//            DEBUGintersectBVHandTriangles(glm::vec4(camRay.origin,tmin),glm::vec4(camRay.dir,0),info.bvhData.dev_triNode, info.bvhData.dev_triDebugPtr,info.bvhData.dev_triIndicesTpr,minTriIdx,scene_t,n,true);
-//            if(scene_t < tmax && x >200 && x < 600 && y > 50 && y < 450){
-//                printf("%f\n",scene_t);
-//            }
+            intersectBVHandTriangles(glm::vec4(camRay.origin, tmin), glm::vec4(camRay.dir, tmax),
+                                     info.bvhData.dev_triNode, info.bvhData.dev_triDebugPtr,
+                                     info.bvhData.dev_triIndicesTpr, minTriIdx, scene_t, n, true);
 
-//            DEBUGintersectBVHandTriangles(make_float4(rayorig.x, rayorig.y, rayorig.z, ray_tmin), make_float4(raydir.x, raydir.y, raydir.z, ray_tmax),
-//            gpuNodes, gpuTriWoops, gpuDebugTris, gpuTriIndices, bestTriIdx, hitDistance, debugbingo, trinormal, leafcount, tricount, false);
 
-//            if(scene_t < tmax)
             if(scene_t < tmax){
                 scene_t = min(scene_t,45.0f);
                 scene_t = (scene_t-15)/30;
