@@ -118,25 +118,37 @@ __global__ void cudaProcess(const kernelInfo info){
             //TODO this magic num
             float tmin = 0.00001f; // set to 0.01f when using refractive material
             float tmax = 1e20;
+            //TODO remove this debug
+            int  debug = 0;
 
-            intersectAllTriangles(triTex,camRay,scene_t,minTriIdx,triTexSize,geomtype,info.cullBackFaces);
-            intersectAllSpeheres(sphereTex,camRay,scene_t,minSphereIdx,sphTexSize,geomtype);
+//            intersectAllTriangles(triTex,camRay,scene_t,minTriIdx,triTexSize,geomtype,info.cullBackFaces);
+            intersectBVHandTriangles(glm::vec4(camRay.origin,0),glm::vec4(camRay.dir,0),info.bvhData.dev_triNode,info.bvhData.dev_triWoopTpr, nullptr,info.bvhData.dev_triIndicesTpr,minTriIdx,scene_t,debug,n,info.bvhData.leafCount,info.bvhData.triCount,false);
 
-            if(geomtype == GeoType::SPHERE){
-                const Sphere & hS = sphereTex[minSphereIdx];
-                hitpos = camRay.origin+camRay.dir*scene_t;
-                vec3 n = hS.getNormal(hitpos);
 
-                //TODO see this inversion later for culling
-                vec3 nl = glm::dot(n, camRay.dir) < 0 ? n : n * -1.0f;
-                objcol = vec3(hS.col.x, hS.col.y,hS.col.z);   // object colour
-                emit = vec3(hS.emi.x, hS.emi.y, hS.emi.z);  // object emission
-                mat = hS.mat;
-                accucolor += (mask * emit);
+            if(minTriIdx==-1){
+                scene_t = min(scene_t,45.0f);
+                scene_t = (scene_t-15)/30;
+                r = 255*scene_t;
+                g=0;
 
             }
-            else if(geomtype == GeoType::TRI){
-                r = 128;
+//            intersectAllSpeheres(sphereTex,camRay,scene_t,minSphereIdx,sphTexSize,geomtype);
+
+//            if(geomtype == GeoType::SPHERE){
+//                const Sphere & hS = sphereTex[minSphereIdx];
+//                hitpos = camRay.origin+camRay.dir*scene_t;
+//                vec3 n = hS.getNormal(hitpos);
+//
+//                //TODO see this inversion later for culling
+//                vec3 nl = glm::dot(n, camRay.dir) < 0 ? n : n * -1.0f;
+//                objcol = vec3(hS.col.x, hS.col.y,hS.col.z);   // object colour
+//                emit = vec3(hS.emi.x, hS.emi.y, hS.emi.z);  // object emission
+//                mat = hS.mat;
+//                accucolor += (mask * emit);
+//
+//            }
+//            else if(geomtype == GeoType::TRI){
+//                r = 128;
 //                pBestTri = &triTex[hitTriIdx];
 //                hitpoint = rayorig + raydir * scene_t; // intersection point
 //
@@ -151,8 +163,8 @@ __global__ void cudaProcess(const kernelInfo info){
 //                emit = vec3(0.0, 0.0, 0);  // object emission
 //                accucolor += (mask * emit);
 
-            }
-            else if(geomtype == GeoType::BOX){
+//            }
+//            else if(geomtype == GeoType::BOX){
 //                Box &box = boxes[box_id];
 //                x = r.orig + r.dir*t;  // intersection point on object
 //                n = normalize(box.normalAt(x)); // normal
@@ -163,7 +175,7 @@ __global__ void cudaProcess(const kernelInfo info){
 //                accucolor += (mask * emit);
 
 
-            }
+//            }
 
 
 

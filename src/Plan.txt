@@ -15,9 +15,10 @@ Experiment with different data types
 Cleanup code and commented stuff
 remove assimp stuff
 Organize Gpu Code
+Add Gpu Box
 
 Prep up the CPU Code
-
+Remove long headers comments from other files
 
 
 

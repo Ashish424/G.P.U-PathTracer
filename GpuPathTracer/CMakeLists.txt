@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.6)
 
 
 
-set(GpuBasicSrc App/main.cpp BasicScene.cpp Scene.cpp utilfun.cpp BVH.cpp BVHNode.cpp bvh_util.cpp SplitBVHBuilder.cpp Sort.cpp CudaBVH.cu)
-set(GpuBasicHdrs BasicScene.hpp Scene.hpp utilfun.hpp cudaUtils.h BVH.hpp BVHNode.hpp bvh_util.hpp SplitBVHBuilder.hpp SceneMesh.hpp Sort.hpp CudaBVH.hpp)
+set(GpuBasicSrc App/main.cpp BasicScene.cpp Scene.cpp utilfun.cpp BVH.cpp BVHNode.cpp bvh_util.cpp SplitBVHBuilder.cpp Sort.cpp CudaBVH.cpp)
+set(GpuBasicHdrs BasicScene.hpp Scene.hpp utilfun.hpp cudaUtils.h BVH.hpp BVHNode.hpp bvh_util.hpp SplitBVHBuilder.hpp SceneMesh.hpp Sort.hpp CudaBVH.hpp CpuStructs.hpp)
 set(GpuBasicCudaSrc tracer.cu )
 
 #MESSAGE(STATUS "deps " ${PLATFORM_LINK_GLAD})

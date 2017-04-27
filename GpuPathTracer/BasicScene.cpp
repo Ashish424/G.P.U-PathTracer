@@ -148,9 +148,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
         using glm::vec4;
 
-        uf::loadIndexedTris("./cube.obj");
         TriMesh currentMesh(uf::loadTris("./cornell.obj"));
-        uf::loadIndexedTris("./cube.obj");
 
         thrust::host_vector<vec4> cpuTris1(currentMesh.ve);
 
@@ -255,9 +253,6 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
 
 
-        auto xI = uf::loadTris ("./cube.obj");
-
-
         auto holdTris(uf::loadIndexedTris("./cornell.obj"));
 
 
@@ -282,8 +277,8 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         cudaMalloc((void**)&info.bvhData.dev_triWoopTpr, gpuBVH->getGpuTriWoopSize() * sizeof(vec4));
         cudaMemcpy(info.bvhData.dev_triWoopTpr, gpuBVH->getGpuTriWoop(), gpuBVH->getGpuTriWoopSize() * sizeof(vec4), cudaMemcpyHostToDevice);
 
-        cudaMalloc((void**)&info.bvhData.dev_triindicesTpr, gpuBVH->getGpuTriIndicesSize()* sizeof(int));
-        cudaMemcpy(info.bvhData.dev_triindicesTpr,gpuBVH->getGpuTriIndices(),gpuBVH->getGpuTriIndicesSize() * sizeof(int), cudaMemcpyHostToDevice);
+        cudaMalloc((void**)&info.bvhData.dev_triIndicesTpr, gpuBVH->getGpuTriIndicesSize()* sizeof(int));
+        cudaMemcpy(info.bvhData.dev_triIndicesTpr,gpuBVH->getGpuTriIndices(),gpuBVH->getGpuTriIndicesSize() * sizeof(int), cudaMemcpyHostToDevice);
 
 //TODO remove these
 //        cudaRender(cudaNodePtr, cudaTriWoopPtr, cudaTriDebugPtr, cudaTriIndicesPtr, finaloutputbuffer,
@@ -294,10 +289,18 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
 
 
-        info.bvhData.dev_triNode;
-        info.bvhData.dev_triWoopTpr;
+        info.bvhData.triNodeSize = gpuBVH->getGpuNodesSize();
+        info.bvhData.triIndicesSize = gpuBVH->getGpuTriIndicesSize();
+        info.bvhData.triWoopSize = gpuBVH->getGpuTriWoopSize();
+        info.bvhData.leafCount = gpuBVH->getLeafnodeCount();
+        info.bvhData.triCount = gpuBVH->getTriCount();
 
 
+//        nodeSize = gpuBVH->getGpuNodesSize();
+//        triWoopSize = gpuBVH->getGpuTriWoopSize();
+//        triIndicesSize = gpuBVH->getGpuTriIndicesSize();
+//        leafnode_count = gpuBVH->getLeafnodeCount();
+//        triangle_count = gpuBVH->getTriCount();
 
 
 

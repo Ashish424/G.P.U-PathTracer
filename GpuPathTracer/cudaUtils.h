@@ -261,13 +261,10 @@ __device__ void intersectBVHandTriangles(const vec4 rayorig, const vec4 raydir,
     //int     leafAddr2;              // Second postponed leaf, non-negative if none.
     //int     nodeAddr = EntrypointSentinel; // Non-negative: current internal node, negative: second postponed leaf.
 
-    int threadId1; // ipv rayidx
+//    int threadId1; // ipv rayidx
 
     // Initialize (stores local variables in registers)
     {
-        // Pick ray index.
-
-        threadId1 = threadIdx.x + blockDim.x * (threadIdx.y + blockDim.y * (blockIdx.x + gridDim.x * blockIdx.y));
 
 
         // Fetch ray.
