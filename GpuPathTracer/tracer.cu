@@ -88,7 +88,7 @@ __global__ void cudaProcess(const kernelInfo info){
 //    col = vtof4(newVec);
 
 
-    u_char r = 255,g = 255,b = 255,a = 255;
+    u_char r = u_char(211),g = u_char(211),b = u_char(211),a = 255;
 
     Ray camRay = getCamRayDir(info.cam,x,y,w,h);
     
@@ -120,19 +120,17 @@ __global__ void cudaProcess(const kernelInfo info){
             vec3 trinormal = vec3(0, 0, 0);
             Mat mat;
 
-//            intersectAllTriangles(triTex,camRay,scene_t,minTriIdx,triTexSize,geomtype,info.cullBackFaces);
-//            intersectBVHandTriangles(glm::vec4(camRay.origin,tmin),glm::vec4(camRay.dir,tmax),info.bvhData.dev_triNode,info.bvhData.dev_triWoopTpr, nullptr,info.bvhData.dev_triIndicesTpr,minTriIdx,scene_t,debug,n,info.bvhData.leafCount,info.bvhData.triCount,false);
-
-            intersectBVHandTriangles(glm::vec4(camRay.origin, tmin), glm::vec4(camRay.dir, tmax),
+//            intersectAllTriangles(triTex,camRay,scene_t,minTriIdx,triTexSize,geomtype,false);
+            const vec3 miss(F32_MAX, F32_MAX, F32_MAX);
+            intersectBVHandTriangles(glm::vec4(camRay.origin, 0), glm::vec4(camRay.dir,F32_MAX),
                                      info.bvhData.dev_triNode, info.bvhData.dev_triDebugPtr,
-                                     info.bvhData.dev_triIndicesTpr, minTriIdx, scene_t, n, true);
-
+                                     info.bvhData.dev_triIndicesTpr, minTriIdx, scene_t,n,geomtype,info.cullBackFaces);
 
             if(scene_t < tmax){
                 scene_t = min(scene_t,45.0f);
                 scene_t = (scene_t-15)/30;
                 r = 255*scene_t;
-                g=0;
+                g = 255*scene_t;
 
             }
 //            intersectAllSpeheres(sphereTex,camRay,scene_t,minSphereIdx,sphTexSize,geomtype);

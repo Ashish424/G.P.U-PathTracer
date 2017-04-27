@@ -110,19 +110,6 @@ __device__ uint rgbToUint(float r, float g, float b)
     return (uint(b)<<16) | (uint(g)<<8) | uint(r);
 }
 
-//inline __device__ vec4 vtof4(const glm::vec4 & v){
-//    return make_vec4(v.x,v.y,v.z,v.w);
-//}
-//inline __device__ glm::vec4 f4tov(const vec4 & f4){
-//    return glm::vec4(f4.x,f4.y,f4.z,f4.w);
-//}
-//
-//inline __device__ float3 vtof3(const vec3 & v){
-//    return make_float3(v.x,v.y,v.z);
-//}
-//inline __device__ vec3 f3tov(const float3 & f3){
-//    return vec3(f3.x,f3.y,f3.z);
-//}
 
 __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const int w,const int h){
 
@@ -134,7 +121,6 @@ __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const
     const float yStep = (py - h/2.0f + 0.5)*cam.dist*cam.fov/h;
 
     glm::vec3 dir = cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep);
-//    float3 dir = vtof3(cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep));
 
 
     //TODO ray begins at the near plane and add random sampling here
@@ -146,17 +132,6 @@ __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const
 
 }
 
-//__device__ float3 getTriangleNormal(const cudaTextureObject_t & tex,const size_t triangleIndex){
-//
-//vec4 edge1 = tex1Dfetch<vec4>(tex, triangleIndex * 3 + 1);
-//vec4 edge2 = tex1Dfetch<vec4>(tex, triangleIndex * 3 + 2);
-//
-//// cross product of two triangle edges yields a vector orthogonal to triangle plane
-//float3 trinormal = cross(make_float3(edge1.x, edge1.y, edge1.z), make_float3(edge2.x, edge2.y, edge2.z));
-//trinormal = normalize(trinormal);
-//
-//return trinormal;
-//}
 __device__ float RayTriangleIntersection(const Ray &r,
                                          const vec3 &v0,
                                          const vec3 &edge1,
@@ -241,7 +216,8 @@ __device__ __inline__ float spanEndKepler(float a0, float a1, float b0, float b1
 
 
 
-__device__ vec3 intersectRayTriangle(const vec3& v0, const vec3& v1, const vec3& v2, const vec4& rayorig, const vec4& raydir){
+__device__ vec3 intersectRayTriangle(const vec3& v0, const vec3& v1, const vec3& v2, const vec4& rayorig, const vec4& raydir,bool cullBackFaces){
+
 
     const vec3 rayorig3f = vec3(rayorig.x, rayorig.y, rayorig.z);
     const vec3 raydir3f = vec3(raydir.x, raydir.y, raydir.z);
@@ -259,6 +235,7 @@ __device__ vec3 intersectRayTriangle(const vec3& v0, const vec3& v1, const vec3&
     vec3 pvec = cross(raydir3f, edge2);
     float det = dot(edge1, pvec);
 
+
     float invdet = 1.0f / det;
 
     float u = dot(tvec, pvec) * invdet;
@@ -267,22 +244,19 @@ __device__ vec3 intersectRayTriangle(const vec3& v0, const vec3& v1, const vec3&
 
     float v = dot(raydir3f, qvec) * invdet;
 
-    if (det > EPSILON)
-    {
-        if (u < 0.0f || u > 1.0f) return miss; // 1.0 want = det * 1/det  
-        if (v < 0.0f || (u + v) > 1.0f) return miss;
-        // if u and v are within these bounds, continue and go to float t = dot(...	           
+    if(det < -EPSILON){
+        if(cullBackFaces){
+            return miss;
+        }
     }
-
-    else if (det < -EPSILON)
-    {
-        if (u > 0.0f || u < 1.0f) return miss;
-        if (v > 0.0f || (u + v) < 1.0f) return miss;
-        // else continue
-    }
-
-    else // if det is not larger (more positive) than EPSILON or not smaller (more negative) than -EPSILON, there is a "miss"
+    else if(det < EPSILON){
         return miss;
+    }
+
+    if (u < 0.0f || u > 1.0f)       return miss; // 1.0 want = det * 1/det
+    if (v < 0.0f || (u + v) > 1.0f) return miss;
+    // if u and v are within these bounds, continue and go to float t = dot(...
+
 
     float t = dot(edge2, qvec) * invdet;
 
@@ -296,7 +270,7 @@ __device__ vec3 intersectRayTriangle(const vec3& v0, const vec3& v1, const vec3&
 __device__ void intersectBVHandTriangles(const glm::vec4 rayorig, const vec4 raydir,
                                          const glm::vec4 *gpuNodes, const glm::vec4 *gpuDebugTris,
                                          const int *gpuTriIndices,
-                                         int &hitTriIdx, float &hitdistance, vec3 &trinormal, bool needClosestHit){
+                                         int &hitTriIdx, float &hitdistance, vec3 &trinormal,int& geomtype,bool cullBackFaces){
 
     int traversalStack[STACK_SIZE];
 
@@ -311,9 +285,7 @@ __device__ void intersectBVHandTriangles(const glm::vec4 rayorig, const vec4 ray
     int		nodeAddr;
     int     hitIndex;
     float	hitT;
-    int threadId1;
 
-    threadId1 = threadIdx.x + blockDim.x * (threadIdx.y + blockDim.y * (blockIdx.x + gridDim.x * blockIdx.y));
 
     origx = rayorig.x;
     origy = rayorig.y;
@@ -382,9 +354,7 @@ __device__ void intersectBVHandTriangles(const glm::vec4 rayorig, const vec4 ray
                 nodeAddr = *(int*)stackPtr; // fetch next node by popping stack
                 stackPtr -= 4; // popping decrements stack by 4 bytes (because stackPtr is a pointer to char)
             }
-
                 // Otherwise => fetch child pointers.
-
             else  // one or both children intersected
             {
                 int2 cnodes = *(int2*)&ptr[3];
@@ -444,12 +414,13 @@ __device__ void intersectBVHandTriangles(const glm::vec4 rayorig, const vec4 ray
         /// LEAF NODE / TRIANGLE INTERSECTION
         ///////////////////////////////////////
 
-        while (leafAddr < 0)  // if leafAddr is negative, it points to an actual leafnode (when positive or 0 it's an innernode
-        {
-            // leafAddr is stored as negative number, see cidx[i] = ~triWoopData.getSize(); in CudaBVH.cpp
+        while (leafAddr < 0){
+        // if leafAddr is negative, it points to an actual leafnode (when positive or 0 it's an innernode
 
-            for (int triAddr = ~leafAddr;; triAddr += 3)
-            {    // no defined upper limit for loop, continues until leaf terminator code 0x80000000 is encountered
+        // leafAddr is stored as negative number, see cidx[i] = ~triWoopData.getSize(); in CudaBVH.cpp
+
+            for (int triAddr = ~leafAddr;; triAddr += 3) {
+                // no defined upper limit for loop, continues until leaf terminator code 0x80000000 is encountered
 
                 // Read first 16 bytes of the triangle.
                 // fetch first triangle vertex
@@ -465,12 +436,12 @@ __device__ void intersectBVHandTriangles(const glm::vec4 rayorig, const vec4 ray
                 const vec3 v1 = vec3(v1f.x, v1f.y, v1f.z);
                 const vec3 v2 = vec3(v2f.x, v2f.y, v2f.z);
 
-                // convert vec4 to vec4
 
-                vec4 rayorigvec4 = vec4(rayorig.x, rayorig.y, rayorig.z, rayorig.w);
-                vec4 raydirvec4 = vec4(raydir.x, raydir.y, raydir.z, raydir.w);
 
-                vec3 bary = intersectRayTriangle(v0, v1, v2, rayorigvec4, raydirvec4);
+                vec4 rayorigvec4 = rayorig;
+                vec4 raydirvec4 = raydir;
+
+                vec3 bary = intersectRayTriangle(v0, v1, v2, rayorigvec4, raydirvec4,cullBackFaces);
 
                 float t = bary.z; // hit distance along ray
 
@@ -478,13 +449,8 @@ __device__ void intersectBVHandTriangles(const glm::vec4 rayorig, const vec4 ray
                 {
                     hitIndex = triAddr;
                     hitT = t;  /// keeps track of closest hitpoint
-
                     trinormal = cross(v0 - v1, v0 - v2);
 
-                    if (!needClosestHit){  // shadow rays only require "any" hit with scene geometry, not the closest one
-                        nodeAddr = EntrypointSentinel;
-                        break;
-                    }
                 }
 
             } // triangle
@@ -508,6 +474,7 @@ __device__ void intersectBVHandTriangles(const glm::vec4 rayorig, const vec4 ray
         // (slow global memory lookup in de gpuTriIndices array) because multiple triangles per node can potentially be hit
 
         hitIndex = gpuTriIndices[hitIndex];
+        geomtype = GeoType::TRI;
     }
 
     hitTriIdx = hitIndex;

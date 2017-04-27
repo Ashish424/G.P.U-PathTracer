@@ -148,7 +148,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
         using glm::vec4;
 
-        TriMesh currentMesh(uf::loadTris("./cornell.obj"));
+        TriMesh currentMesh(uf::loadTris("./sphere.obj"));
 
         thrust::host_vector<vec4> cpuTris1(currentMesh.ve);
 
