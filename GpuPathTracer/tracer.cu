@@ -24,7 +24,7 @@
 
 
 
-__device__ glm::vec3 getSample(const kernelInfo & info){
+__device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
 
 
 
@@ -47,10 +47,6 @@ __device__ glm::vec3 getSample(const kernelInfo & info){
     const int h = info.height;
 
 
-
-    //TODO move it to above kernel
-    curandState randState; // state of the random number generator, to prevent repetition
-    curand_init(info.hash + (blockIdx.x + blockIdx.y * gridDim.x) * (blockDim.x * blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x, 0, 0, &randState);
 
     if(x == 0 && y ==0 ) {
 
@@ -130,9 +126,8 @@ __device__ glm::vec3 getSample(const kernelInfo & info){
             hitpos = currRay.origin+currRay.dir*scene_t;
             if(geomtype == GeoType::SPHERE){
                 const Sphere & hS = sphereTex[minSphereIdx];
-                vec3 n = hS.getNormal(hitpos);
-
-                vec3 nl = glm::dot(n, currRay.dir) < 0 ? n : n * -1.0f;
+                n = hS.getNormal(hitpos);
+                nl = glm::dot(n, currRay.dir) < 0 ? n : n * -1.0f;
                 objcol = hS.col;;   // object colour
                 emit = hS.emi;  // object emission
                 mat = hS.mat;
@@ -168,61 +163,55 @@ __device__ glm::vec3 getSample(const kernelInfo & info){
 
             if (mat == Mat::DIFF){
 
-                vec3 nt,nb;
-                nt = (fabs(nl.x) > fabs(nl.y))?vec3(nl.z, 0, -nl.x):vec3(0, -nl.z, nl.y);
-                nb = cross(nl,nt);
+                // pick two random numbers
+                float phi = 2 * M_PI * curand_uniform(randstate);
+                float r2 = curand_uniform(randstate);
+                float r2s = sqrtf(r2);
 
-                vec3 randVec = uniformSampleHemisphere(curand_uniform(&randState),curand_uniform(&randState));
+                // compute orthonormal coordinate frame uvw with hitpoint as origin
+                vec3 w = nl; w = normalize(w);
+                vec3 u = cross((fabs(w.x) > .1 ? vec3(0, 1, 0) : vec3(1, 0, 0)), w); u = normalize(u);
+                vec3 v = cross(w, u);
+
                 // compute cosine weighted random ray direction on hemisphere
-                nextdir = vec3(nt.x*randVec.x+nt.y*randVec.y+nt.z*randVec.z,
-                               nb.x*randVec.x+nb.y*randVec.y+nb.z*randVec.z,
-                               nl.x*randVec.x+nl.y*randVec.y+nl.z*randVec.z);
-                nextdir = glm::normalize(nextdir);
+                nextdir = u*cosf(phi)*r2s + v*sinf(phi)*r2s + w*sqrtf(1 - r2);
+                nextdir = normalize(nextdir);
 
                 // offset origin next path segment to prevent self intersection
-                //TODO magic num here
                 hitpos += nl * 0.001f; // scene size dependent
 
                 // multiply mask with colour of object
                 mask *= objcol;
 
-            }
 
-
-//            // Phong metal material from "Realistic Ray Tracing", P. Shirley
-//            else if (refltype == METAL){
+//                vec3 nt,nb;
+//                nt = (fabs(nl.x) > fabs(nl.y))?vec3(nl.z, 0, -nl.x):vec3(0, -nl.z, nl.y);
+//                nb = cross(nl,nt);
 //
-//                // compute random perturbation of ideal reflection vector
-//                // the higher the phong exponent, the closer the perturbed vector is to the ideal reflection direction
-//                float phi = 2 * M_PI * curand_uniform(randstate);
-//                float r2 = curand_uniform(randstate);
-//                float phongexponent = 30;
-//                float cosTheta = powf(1 - r2, 1.0f / (phongexponent + 1));
-//                float sinTheta = sqrtf(1 - cosTheta * cosTheta);
-//
-//                // create orthonormal basis uvw around reflection vector with hitpoint as origin
-//                // w is ray direction for ideal reflection
-//                vec3 w = raydir - n * 2.0f * dot(n, raydir); w.normalize();
-//                vec3 u = cross((fabs(w.x) > .1 ? vec3(0, 1, 0) : vec3(1, 0, 0)), w); u.normalize();
-//                vec3 v = cross(w, u); // v is already normalised because w and u are normalised
-//
+//                vec3 randVec = uniformSampleHemisphere(curand_uniform(&randState),curand_uniform(&randState));
 //                // compute cosine weighted random ray direction on hemisphere
-//                nextdir = u * cosf(phi) * sinTheta + v * sinf(phi) * sinTheta + w * cosTheta;
-//                nextdir.normalize();
+//
+//                nextdir = vec3(nt.x*randVec.x+nb.x*randVec.y+nl.x*randVec.z,
+//                               nt.y*randVec.x+nb.y*randVec.y+nl.y*randVec.z,
+//                               nt.z*randVec.x+nb.z*randVec.y+nl.z*randVec.z);
+//                nextdir = glm::normalize(nextdir);
 //
 //                // offset origin next path segment to prevent self intersection
-//                hitpoint += nl * 0.0001f;  // scene size dependent
+//                //TODO magic num here
+//                hitpos += nl * 0.001f; // scene size dependent
 //
 //                // multiply mask with colour of object
 //                mask *= objcol;
-//            }
-//
-//            // ideal specular reflection (mirror)
+
+            }
+
+
+            // ideal specular reflection (mirror)
             else if (mat == Mat::SPEC){
 
 
                 //Snell's law
-                nextdir = currRay.dir - n * dot(n, currRay.dir) * 2.0f;
+                nextdir = currRay.dir - nl * dot(nl, currRay.dir) * 2.0f;
                 nextdir = glm::normalize(nextdir);
 
                 //TODO this magic num
@@ -289,13 +278,25 @@ __device__ glm::vec3 getSample(const kernelInfo & info){
 //                }
 //            }
 //
-//            // set up origin and direction of next path segment
-//            rayorig = hitpoint;
-//            raydir = nextdir;
+
 
             currRay.origin = hitpos;
             currRay.dir = nextdir;
+
+
+
+
+            if(x == w/2 && y == h/2){
+                printf("cam orig%f %f %f cam dir %f %f %f\n",currRay.origin.x,currRay.origin.y,currRay.origin.z,currRay.dir.x,currRay.dir.y,currRay.dir.z);
+            }
         }
+
+
+        if(x == w/2 && y == h/2){
+            printf("seperator\n");
+        }
+
+
         return accucolor;
 
 
@@ -345,13 +346,17 @@ __global__ void trace(const kernelInfo info){
     uint bh = blockDim.y;
     uint x = blockIdx.x*bw + tx;
     uint y = blockIdx.y*bh + ty;
-    size_t pixelPos = y*info.width+x;
 
     const int w = info.width;
     const int h = info.height;
 
-
     if(x>=w || y>=h)return;
+    size_t pixelPos = y*info.width+x;
+
+
+    //TODO move it to above kernel
+    curandState randState; // state of the random number generator, to prevent repetition
+    curand_init(info.hash + (blockIdx.x + blockIdx.y * gridDim.x) * (blockDim.x * blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x, 0, 0, &randState);
 
 
 
@@ -362,7 +367,7 @@ __global__ void trace(const kernelInfo info){
     const int samples = info.samples;
     vec3 finalcol(0,0,0);
     for (int s = 0; s < samples; ++s) {
-        finalcol += getSample(info)*(1.0f/samples);
+        finalcol += getSample(info,&randState)*(1.0f/samples);
     }
     finalcol = glm::clamp(finalcol,vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f));
 
