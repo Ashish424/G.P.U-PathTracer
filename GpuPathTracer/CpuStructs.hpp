@@ -61,6 +61,9 @@ struct kernelInfo{
     uint64_t constantPdf = 1;
     BVHData bvhData;
 
+    float time_elapsed;
+    float air_ref_index = 1.0f;
+    float glass_ref_index = 1.4f;
 };
 
 

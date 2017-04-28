@@ -42,7 +42,7 @@ private:
 
 
 
-
+    void drawWindow(bool visible);
     //the cuda image to use for drawing
     unsigned int * cudaDestResource;
     int width,height;

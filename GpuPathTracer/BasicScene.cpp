@@ -393,6 +393,7 @@ void BasicScene::run() {
         g.Start();
         launchKernel(info);
         g.Stop();
+        info.time_elapsed = g.Elapsed();
         std::cout << g.Elapsed() << std::endl;
 
 
@@ -446,6 +447,7 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
             glfwSetWindowShouldClose(window, GL_TRUE);
         }
         else if(key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT){
+            printf("pressed shift \n");
             sn->info.cam.enabled = !sn->info.cam.enabled;
         }
     }
@@ -526,16 +528,7 @@ void BasicScene::update(double delta) {
 
 
 }
-void myWindow(bool val){
-    ImGui::Begin("Test Window", &val);
-    float f;
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 
-    ImGui::Text("Hello");
-    if (ImGui::Button("Button")) { std:: cout <<"button named button clicked" << std::endl;
-    }
-    ImGui::End();
-}
 void BasicScene::draw() {
 
 
@@ -554,16 +547,38 @@ void BasicScene::draw() {
     glBindVertexArray(renderQuad.vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
+
+
+
     ImGui_ImplGlfwGL3_NewFrame();
 
     // 1. Show a simple window
     // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-    myWindow(true);
+    drawWindow(true);
     int display_w, display_h;
-    glfwGetFramebufferSize(mainWindow, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
+//    glfwGetFramebufferSize(mainWindow, &display_w, &display_h);
+//    glViewport(0, 0, display_w, display_h);
 
     ImGui::Render();
+}
+
+void BasicScene::drawWindow(bool visible) {
+    ImGui::Begin("Test Window", &visible);
+    int b_size[2] = {(int)info.blockSize.x, (int)info.blockSize.y};
+
+    ImGui::SliderInt2("BlockSize", b_size , 16, 256);
+    ImGui::SliderInt("Depth", (int *) &info.depth, 1, 10);
+    ImGui::SliderFloat("Air Reflective Index", &info.air_ref_index, 1.0f, 2.0f);
+    ImGui::SliderFloat("Glass Reflective Index", &info.glass_ref_index, 1.0f, 2.0f);
+    ImGui::Text("Time per frame: %0.2f ms", info.time_elapsed);
+    ImGui::Checkbox("Back face culling", &info.cullBackFaces);
+    //check box back face cull
+
+    if (ImGui::Button("Button")) { std:: cout <<"button named button clicked" << std::endl;
+    }
+    info.blockSize.x = b_size[0];
+    info.blockSize.y = b_size[1];
+    ImGui::End();
 }
 
 
