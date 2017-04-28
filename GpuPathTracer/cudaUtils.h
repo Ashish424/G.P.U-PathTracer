@@ -105,7 +105,6 @@ __device__ uint rgbToUint(float r, float g, float b)
 }
 
 
-__device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const int w,const int h);
 __device__ void intersectAllSpeheres(const vec4 * sphereTex,const Ray & camRay,float& t_scene, int & sphere_id, const size_t numSpheres, int& geomtype);
 
 
@@ -171,7 +170,15 @@ __device__ glm::vec3 intersectRayTriangleEdge(const vec3 &v0,
 
 
 }
+__device__ vec3 intersectRayTriangle(const vec3& v0, const vec3& v1, const vec3& v2, const Ray& camRay,float rayMin,float rayMax,bool cullBackFaces){
 
+
+
+    vec3 edge1 = v1 - v0;
+    vec3 edge2 = v2 - v0;
+    return intersectRayTriangleEdge(v0,edge1,edge2,camRay,rayMin,rayMax,cullBackFaces);
+
+}
 
 
 
@@ -239,52 +246,7 @@ __device__ __inline__ float fmax_fmax(float a, float b, float c) { return __int_
 __device__ __inline__ float spanBeginKepler(float a0, float a1, float b0, float b1, float c0, float c1, float d){ return fmax_fmax(fminf(a0, a1), fminf(b0, b1), fmin_fmax(c0, c1, d)); }
 __device__ __inline__ float spanEndKepler(float a0, float a1, float b0, float b1, float c0, float c1, float d)	{ return fmin_fmin(fmaxf(a0, a1), fmaxf(b0, b1), fmax_fmin(c0, c1, d)); }
 
-__device__ vec3 intersectRayTriangle(const vec3& v0, const vec3& v1, const vec3& v2, const Ray& camRay,float rayMin,float rayMax,bool cullBackFaces){
 
-
-    const float EPSILON = 0.00001f; // works better
-    const vec3 miss(F32_MAX, F32_MAX, F32_MAX);
-
-
-    vec3 edge1 = v1 - v0;
-    vec3 edge2 = v2 - v0;
-    return intersectRayTriangleEdge(v0,edge1,edge2,camRay,rayMin,rayMax,cullBackFaces);
-
-//    vec3 tvec = rayorig3f - v0;
-//    vec3 pvec = cross(raydir3f, edge2);
-//    float det = dot(edge1, pvec);
-//
-//
-//    float invdet = 1.0f / det;
-//
-//    float u = dot(tvec, pvec) * invdet;
-//
-//    vec3 qvec = cross(tvec, edge1);
-//
-//    float v = dot(raydir3f, qvec) * invdet;
-//
-//    if(det < -EPSILON){
-//        if(cullBackFaces){
-//            return miss;
-//        }
-//    }
-//    else if(det < EPSILON){
-//        return miss;
-//    }
-//
-//    if (u < 0.0f || u > 1.0f)       return miss; // 1.0 want = det * 1/det
-//    if (v < 0.0f || (u + v) > 1.0f) return miss;
-//    // if u and v are within these bounds, continue and go to float t = dot(...
-//
-//
-//    float t = dot(edge2, qvec) * invdet;
-//
-//    if (t > raytmin && t < raytmax)
-//        return vec3(u, v, t);
-//
-//    // otherwise (t < raytmin or t > raytmax) miss
-//    return miss;
-}
 
 
 

@@ -35,7 +35,6 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
     uint bh = blockDim.y;
     uint x = blockIdx.x*bw + tx;
     uint y = blockIdx.y*bh + ty;
-    size_t pixelPos = y*info.width+x;
     const glm::vec4 * const triTex = info.triangleTex;
     const Sphere * const sphereTex = info.sphereTex;
 
@@ -73,7 +72,7 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
         for (unsigned int d = 0; d < depth; ++d){
 
             //TODO this magic num
-            float tmin = 0.00001f; // set to 0.01f when using refractive material
+            float tmin = 0.01f;
             float tmax = 1e20;
 
             int minSphereIdx = -1;
@@ -92,7 +91,6 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
             Mat mat;
 
 //            intersectAllTriangles(triTex,currRay,scene_t,minTriIdx,triTexSize,geomtype,info.cullBackFaces);
-            //TODO enable this
             intersectBVHandTriangles(currRay,0,F32_MAX,
                                      info.bvhData.dev_triNode,
                                      info.bvhData.dev_triPtr,
@@ -134,9 +132,8 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
 
 
                 //TODO correct here color,mat hardcoded
-                //Vec3f colour = hitTriIdx->_colorf;
-//                float4 col = ;
-                vec3 colour(246.0f/256.0f,94.0/255.0f,70.0/255.0f); // hardcoded triangle colour  .9f, 0.3f, 0.0f
+
+                vec3 colour(246.0f/256.0f,246.0/255.0f,70.0/255.0f); // hardcoded triangle colour  .9f, 0.3f, 0.0f
                 objcol = colour;
                 emit = vec3(0.0, 0.0, 0.0);  // object emission
                 accucolor += (mask * emit);
@@ -378,9 +375,9 @@ __global__ void trace(const kernelInfo info){
 
 
 
-    if(x == 0 && y == 0){
-        printf("cam dirt%d\n",info.cam.dirty);
-    }
+//    if(x == 0 && y == 0){
+//        printf("cam dirt%d\n",info.cam.dirty);
+//    }
 
 
 

@@ -186,10 +186,10 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
         thrust::host_vector<Sphere> spheres;
         //posRad,emi,col
-        spheres.push_back(Sphere(vec4(0.0f,-pushY-rad,-20,rad),vec3(197.0f/255.0f,153.0f/255.0f,92.0f/255.0f),vec3(1.0f,1.0f,1.0f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4(0.0f, pushY+rad,-20,rad),vec3(197.0f/255.0f,153.0f/255.0f,92.0f/255.0f),vec3(1.0f,1.0f,1.0f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4(0.0f,-pushY-rad,-20,rad),vec3(197.0f/255.0f,153.0f/255.0f,92.0f/255.0f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4(0.0f, pushY+rad,-20,rad),vec3(197.0f/255.0f,153.0f/255.0f,92.0f/255.0f),vec3(0.1f,0.3f,.4f),Mat::DIFF));
         spheres.push_back(Sphere(vec4( pushX+rad,0.0f,-20,rad),vec3(165.0f/255.0f,15.0f/255.0f,0.0f/255.0f),vec3(165.0f/255.0f,15.0f/255.0f,0.0f/255.0f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4( -pushX-rad,0.0f,-20,rad),vec3(30.0f/255.0f,76.0f/255.0f,14.0/255.0f),vec3(30.0f/255.0f,76.0f/255.0f,14.0/255.0f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4(-pushX-rad,0.0f,-20,rad),vec3(30.0f/255.0f,76.0f/255.0f,14.0/255.0f),vec3(30.0f/255.0f,76.0f/255.0f,14.0/255.0f),Mat::DIFF));
 
         spheres.push_back(Sphere(vec4( 0.0f,0.0f,-rad*1.5-20,rad),vec3(197.0f/255.0,153.0f/255.0f,92.0f/255.0f),vec3(1.0f,1.0f,1.0f),Mat::DIFF));
         spheres.push_back(Sphere(vec4( 0.0f,0.0f,rad*1.5+20,rad),vec3(.0f,1.0f,0.8f),vec3(5.0f,5.0f,0.5f),Mat::DIFF));
@@ -366,6 +366,8 @@ void BasicScene::run() {
         delta = curr-last;
         last = curr;
 
+        info.cam.dirty = false;
+
         glfwPollEvents();
         update(delta);
 
@@ -431,6 +433,7 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
     if(action == GLFW_PRESS) {
         if (key == GLFW_KEY_R) {
             sn->info.cam = sn->savecam;
+            sn->info.cam.dirty = true;
         }
         else if (key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose(window, GL_TRUE);
@@ -450,8 +453,7 @@ void scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
     float off = scrollSensitivity*(float)yoffset;
     cout << glm::to_string(scn->info.cam.front*off) << endl;
     scn->info.cam.pos+=off*scn->info.cam.front;
-    scn->info.cam.dirty = true;
-
+    scn->info.cam.dirty = scn->info.cam.enabled;
 
 
 
@@ -462,7 +464,6 @@ void BasicScene::Updater::operator()(double delta) {
 
     float camSpeed = moveSpeed*(float)delta;
 
-    prtScn.info.cam.dirty = false;
     if(prtScn.info.cam.enabled) {
 
 
@@ -551,10 +552,31 @@ void BasicScene::drawWindow(bool visible) {
     ImGui::SliderFloat("Glass Reflective Index", &info.glass_ref_index, 1.0f, 2.0f);
     ImGui::Text("Time per frame: %0.2f ms", info.time_elapsed);
     ImGui::Checkbox("Back face culling", &info.cullBackFaces);
-    //check box back face cull
 
-    if (ImGui::Button("Button")) { std:: cout <<"button named button clicked" << std::endl;
+    const char* listbox_items[] = { "DIFF","SPEC","REFR" ,"METAL"};
+    int listbox_item_current = Mat::DIFF;
+
+    if(ImGui::ListBox("Mat Select", &listbox_item_current, listbox_items, IM_ARRAYSIZE(listbox_items), 4)){
+        printf("selected %d\n",listbox_item_current);
     }
+
+//    if(listbox_item_current ==  Mat::DIFF){
+        ;
+//    }
+//    else if(listbox_item_current == Mat::SPEC){
+//
+//    }
+//    else if(listbox_item_current == Mat::REFR){
+//
+//    }
+//    else{
+//
+//    }
+
+
+
+//    if (ImGui::Button("Button")) { std:: cout <<"button named button clicked" << std::endl;
+//    }
     info.blockSize.x = b_size[0];
     info.blockSize.y = b_size[1];
     ImGui::End();
