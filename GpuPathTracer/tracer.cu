@@ -214,63 +214,60 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
                 // multiply mask with colour of object
                 mask *= objcol;
             }
-
-
-
             // perfectly refractive material (glass, water)
-            // set ray_tmin to 0.01 when using refractive material
-//          else  if (refltype == REFR){
-//
-//                bool into = dot(n, nl) > 0; // is ray entering or leaving refractive material?
-//                float nc = 1.0f;  // Index of Refraction air
-//                float nt = 1.4f;  // Index of Refraction glass/water
-//                float nnt = into ? nc / nt : nt / nc;  // IOR ratio of refractive materials
-//                float ddn = dot(raydir, nl);
-//                float cos2t = 1.0f - nnt*nnt * (1.f - ddn*ddn);
-//
-//                if (cos2t < 0.0f) // total internal reflection
-//                {
-//                    nextdir = raydir - n * 2.0f * dot(n, raydir);
-//                    nextdir.normalize();
-//
-//                    // offset origin next path segment to prevent self intersection
-//                    hitpoint += nl * 0.001f; // scene size dependent
-//                }
-//                else // cos2t > 0
-//                {
-//                    // compute direction of transmission ray
-//                    vec3 tdir = raydir * nnt;
-//                    tdir -= n * ((into ? 1 : -1) * (ddn*nnt + sqrtf(cos2t)));
-//                    tdir.normalize();
-//
-//                    float R0 = (nt - nc)*(nt - nc) / (nt + nc)*(nt + nc);
-//                    float c = 1.f - (into ? -ddn : dot(tdir, n));
-//                    float Re = R0 + (1.f - R0) * c * c * c * c * c;
-//                    float Tr = 1 - Re; // Transmission
-//                    float P = .25f + .5f * Re;
-//                    float RP = Re / P;
-//                    float TP = Tr / (1.f - P);
-//
-//                    // randomly choose reflection or transmission ray
-//                    if (curand_uniform(randstate) < 0.2) // reflection ray
-//                    {
-//                        mask *= RP;
-//                        nextdir = raydir - n * 2.0f * dot(n, raydir);
-//                        nextdir.normalize();
-//
-//                        hitpoint += nl * 0.001f; // scene size dependent
-//                    }
-//                    else // transmission ray
-//                    {
-//                        mask *= TP;
-//                        nextdir = tdir;
-//                        nextdir.normalize();
-//
-//                        hitpoint += nl * 0.001f; // epsilon must be small to avoid artefacts
-//                    }
-//                }
-//            }
-//
+            else if (mat == REFR){
+
+                bool into = dot(n, nl) > 0; // is ray entering or leaving refractive material?
+                float nc = 1.0f;  // Index of Refraction air
+                float nt = 1.4f;  // Index of Refraction glass/water
+                float nnt = into ? nc / nt : nt / nc;  // IOR ratio of refractive materials
+                float ddn = dot(currRay.dir, nl);
+                float cos2t = 1.0f - nnt*nnt * (1.f - ddn*ddn);
+
+                if (cos2t < 0.0f) // total internal reflection
+                {
+                    nextdir = currRay.dir - n * 2.0f * dot(n, currRay.dir);
+                    nextdir = normalize(nextdir);
+
+                    //TODO here magic num
+                    // offset origin next path segment to prevent self intersection
+                    hitpos += nl * 0.001f; // scene size dependent
+                }
+                else // cos2t > 0
+                {
+                    // compute direction of transmission ray
+                    vec3 tdir = currRay.dir * nnt;
+                    tdir -= n * ((into ? 1 : -1) * (ddn*nnt + sqrtf(cos2t)));
+                    tdir = normalize(tdir);
+
+                    float R0 = (nt - nc)*(nt - nc) / (nt + nc)*(nt + nc);
+                    float c = 1.f - (into ? -ddn : dot(tdir, n));
+                    float Re = R0 + (1.f - R0) * c * c * c * c * c;
+                    float Tr = 1 - Re; // Transmission
+                    float P = .25f + .5f * Re;
+                    float RP = Re / P;
+                    float TP = Tr / (1.f - P);
+
+                    // randomly choose reflection or transmission ray
+                    if (curand_uniform(randstate) < 0.2) // reflection ray
+                    {
+                        mask *= RP;
+                        nextdir = currRay.dir - n * 2.0f * dot(n, currRay.dir);
+                        nextdir = normalize(nextdir);
+
+                        hitpos += nl * 0.001f; // scene size dependent
+                    }
+                    else // transmission ray
+                    {
+                        mask *= TP;
+                        nextdir = tdir;
+                        nextdir = normalize(nextdir);
+
+                        hitpos += nl * 0.001f; // epsilon must be small to avoid artefacts
+                    }
+                }
+            }
+
 
 
             currRay.origin = hitpos;
@@ -349,12 +346,12 @@ __global__ void trace(const kernelInfo info){
 
     //TODO replace uchar with int and in opengl shader see effect
     uchar3 c3 = make_uchar3(255,255,255);
-    const int samples = info.samples;
     vec3 finalcol(0,0,0);
-    //TODO remove samples from here as already convergence
-    for (int s = 0; s < samples; ++s) {
-        finalcol += getSample(info,&randState)*(1.0f/samples);
-    }
+
+
+
+    finalcol += getSample(info,&randState);
+
 
 
 
@@ -365,23 +362,12 @@ __global__ void trace(const kernelInfo info){
 
 
 
-    if(info.cam.dirty){
-        assert(info.constantPdf == 1);
-        info.accumBuffer[pixelPos]=finalcol;
-    }
-    else{
-
-        if(x == 0 && y == 0){
-            printf("accumulating\n");
-            printf("info constantpdf is %lu",info.constantPdf);
-        }
-        vec3 initVal = info.accumBuffer[pixelPos];
-        initVal*=(info.constantPdf-1);
-        initVal+=finalcol;
-        initVal*=(1.0f/info.constantPdf);
-        initVal = glm::clamp(initVal,vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f));
-        info.accumBuffer[pixelPos] = initVal;
-    }
+    vec3 initVal = info.accumBuffer[pixelPos];
+    initVal*=(info.constantPdf-1);
+    initVal+=finalcol;
+    initVal*=(1.0f/info.constantPdf);
+    initVal = glm::clamp(initVal,vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f));
+    info.accumBuffer[pixelPos] = initVal;
 
     c3.x*=info.accumBuffer[pixelPos].x;
     c3.y*=info.accumBuffer[pixelPos].y;

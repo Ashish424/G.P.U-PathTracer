@@ -55,7 +55,6 @@ struct kernelInfo{
     size_t numSpheres = 0;
     bool cullBackFaces = true;
     unsigned int depth = 1;
-    unsigned int samples = 1;
 
 
     uint64_t constantPdf = 1;

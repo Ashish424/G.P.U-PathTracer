@@ -8,7 +8,7 @@ set(GpuBasicHdrs BasicScene.hpp Scene.hpp utilfun.hpp cudaUtils.h BVH.hpp BVHNod
 set(GpuBasicCudaSrc tracer.cu )
 
 #MESSAGE(STATUS "deps " ${PLATFORM_LINK_GLAD})
-cuda_add_executable(GpuBasicTracer ${GpuBasicCudaSrc}  ${GpuBasicSrc} ${GpuBasicHdrs} ${TINY_OBJ_SOURCE} ${DEPS_SOURCES})
+cuda_add_executable(GpuBasicTracer ${GpuBasicCudaSrc}  ${GpuBasicSrc} ${GpuBasicHdrs} ${IMGUI_SOURCE} ${TINY_OBJ_SOURCE}  ${DEPS_SOURCES})
 target_link_libraries(GpuBasicTracer assimp glfw ${PLATFORM_LINK_GLAD})
 set_target_properties(GpuBasicTracer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/GpuBasicTracer)
 #TODO see if to make shaders as target so that if required

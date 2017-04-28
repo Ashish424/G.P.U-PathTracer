@@ -27,16 +27,17 @@ include_directories(
         "deps/glad/include"
         "deps/glfw/include"
         "deps/glm"
+        "deps/imgui"
         "deps/tinyobjloader"
         "deps/assimp/include"
         "deps/glraw/source/glraw")
 
 file(GLOB DEPS_SOURCES deps/glad/src/glad.c)
 file(GLOB TINY_OBJ_SOURCE deps/tinyobjloader/*)
-#file(GLOB IMGUI_SOURCE
-#        deps/imgui/*.h
-#        deps/imgui/*.cpp
-#        )
+file(GLOB IMGUI_SOURCE
+        deps/imgui/*.h
+        deps/imgui/*.cpp
+        )
 
 
 set(DEPS_SOURCES ${DEPS_SOURCES})

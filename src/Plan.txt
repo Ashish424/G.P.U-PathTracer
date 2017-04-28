@@ -24,6 +24,10 @@ Interactive Samples,Interactive Depth
 =>Display stuff like kernel execution time,texture mapping
 =>Gl controls(Fog)
 =>BackFace Culling
+=>Air refractive index,glass ka refractive index
+
+
+
 
 Stuff We did
 (Presentation Slides)

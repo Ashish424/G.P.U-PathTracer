@@ -84,7 +84,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 //        glfwSetCursorPosCallback(mainWindow, mousePosCallback);
         glfwSetKeyCallback(mainWindow, keyCallback);
         glfwSetScrollCallback(mainWindow, scrollCallback);
-//        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
     if(!uf::initGlad()){
@@ -207,6 +207,9 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
         spheres.push_back(Sphere(vec4(0.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::SPEC));
 
+        spheres.push_back(Sphere(vec4(12.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::REFR));
+
+
 
 
 
@@ -230,7 +233,6 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         info.numSpheres = numSpheres;
         info.cullBackFaces = true;
         info.depth = 4;
-        info.samples = 1;
     }
 
     //setup camera
@@ -265,14 +267,12 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         cout << glm::to_string(info.cam.right)<< endl;
 
 
-//        objects need to have negative coords relative to camera
+//      objects need to have negative coords relative to camera
         const float xStep = (1/2.0f)*info.cam.dist*info.cam.aspect*info.cam.fov;
         const float yStep = (height - height/2.0f)*info.cam.dist*info.cam.fov/height;
 
         glm::vec3 dir = info.cam.front*info.cam.dist+info.cam.right*(1.0f*xStep)+info.cam.up*(1.0f*yStep);
         cout << "pos string "<<glm::to_string(dir)<< endl;
-//    float3 dir = vtof3(cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep));
-
 
 
     }
