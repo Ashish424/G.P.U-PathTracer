@@ -560,11 +560,20 @@ void BasicScene::draw() {
 
 void BasicScene::drawWindow(bool visible) {
     ImGui::Begin("Test Window", &visible);
-    float f; int a[2] = {10, 1}, b;
-    ImGui::SliderInt2("Valjue", a, 0, 100);
+    int b_size[2] = {(int)info.blockSize.x, (int)info.blockSize.y};
+
+    ImGui::SliderInt2("BlockSize", b_size , 16, 256);
+    ImGui::SliderInt("Depth", (int *) &info.depth, 1, 10);
+    ImGui::SliderFloat("Air Reflective Index", &info.air_ref_index, 1.0f, 2.0f);
+    ImGui::SliderFloat("Glass Reflective Index", &info.glass_ref_index, 1.0f, 2.0f);
     ImGui::Text("Time per frame: %0.2f ms", info.time_elapsed);
+    ImGui::Checkbox("Back face culling", &info.cullBackFaces);
+    //check box back face cull
+
     if (ImGui::Button("Button")) { std:: cout <<"button named button clicked" << std::endl;
     }
+    info.blockSize.x = b_size[0];
+    info.blockSize.y = b_size[1];
     ImGui::End();
 }
 
