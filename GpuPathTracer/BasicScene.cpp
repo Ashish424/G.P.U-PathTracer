@@ -139,6 +139,13 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
         //TODO pinned memory
         checkCudaErrors(cudaMalloc((void **)&cudaDestResource, size_tex_data));
+
+
+
+
+        checkCudaErrors(cudaMalloc(&info.accumBuffer,sizeof(vec3)*num_texels));
+        checkCudaErrors(cudaMemset(info.accumBuffer,0,sizeof(vec3)*num_texels));
+
     }
     //TODO deletions here too
 
@@ -223,7 +230,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         info.numSpheres = numSpheres;
         info.cullBackFaces = true;
         info.depth = 4;
-        info.samples = 5;
+        info.samples = 1;
     }
 
     //setup camera
@@ -293,18 +300,16 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
 
         // allocate and copy scene databuffers to the GPU (BVH nodes, triangle vertices, triangle indices)
-        cudaMalloc((void**)&info.bvhData.dev_triNode, gpuBVH->getGpuNodesSize() * sizeof(vec4));
-        cudaMemcpy(info.bvhData.dev_triNode, gpuBVH->getGpuNodes(), gpuBVH->getGpuNodesSize() * sizeof(vec4), cudaMemcpyHostToDevice);
+        checkCudaErrors(cudaMalloc((void**)&info.bvhData.dev_triNode, gpuBVH->getGpuNodesSize() * sizeof(vec4)));
+        checkCudaErrors(cudaMemcpy(info.bvhData.dev_triNode, gpuBVH->getGpuNodes(), gpuBVH->getGpuNodesSize() * sizeof(vec4), cudaMemcpyHostToDevice));
 
 
-        cudaMalloc((void**)&info.bvhData.dev_triIndicesPtr, gpuBVH->getGpuTriIndicesSize()* sizeof(int));
-        cudaMemcpy(info.bvhData.dev_triIndicesPtr,gpuBVH->getGpuTriIndices(),gpuBVH->getGpuTriIndicesSize() * sizeof(int), cudaMemcpyHostToDevice);
+        checkCudaErrors(cudaMalloc((void**)&info.bvhData.dev_triIndicesPtr, gpuBVH->getGpuTriIndicesSize()* sizeof(int)));
+        checkCudaErrors(cudaMemcpy(info.bvhData.dev_triIndicesPtr,gpuBVH->getGpuTriIndices(),gpuBVH->getGpuTriIndicesSize() * sizeof(int), cudaMemcpyHostToDevice));
 
 
-        cudaMalloc((void**)&info.bvhData.dev_triPtr, gpuBVH->getDebugTriSize()* sizeof(vec4));
-        cudaMemcpy(info.bvhData.dev_triPtr,gpuBVH->getDebugTri(),gpuBVH->getDebugTriSize() * sizeof(vec4), cudaMemcpyHostToDevice);
-
-
+        checkCudaErrors(cudaMalloc((void**)&info.bvhData.dev_triPtr, gpuBVH->getDebugTriSize()* sizeof(vec4)));
+        checkCudaErrors(cudaMemcpy(info.bvhData.dev_triPtr,gpuBVH->getDebugTri(),gpuBVH->getDebugTriSize() * sizeof(vec4), cudaMemcpyHostToDevice));
 
 
 
@@ -317,6 +322,9 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
 
     }
+
+
+
 
 
 }
@@ -374,6 +382,8 @@ void BasicScene::run() {
         checkCudaErrors(cudaStreamSynchronize(0));
 
         info.hash = uf::hash(frameNumber);
+
+        info.constantPdf =  (info.cam.dirty)?(1):(info.constantPdf+1);
 
 
         uf::GpuTimer g;
@@ -454,6 +464,8 @@ void BasicScene::Updater::operator()(double delta) {
     float camSpeed = moveSpeed*(float)delta;
 
 
+    prtScn.info.cam.dirty = false;
+
 
     if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_W)){
         prtScn.info.cam.dirty = true;
@@ -485,17 +497,11 @@ void BasicScene::Updater::operator()(double delta) {
     lastX = xPos;
     lastY = yPos;
     //TODO there values need to be checked
-    if(offsetX > 0.1f || offsetY > 0.1f)
+    if(offsetX > prtScn.info.cam.camBias.x || offsetY > prtScn.info.cam.camBias.y)
         prtScn.info.cam.dirty = true;
     setPitchAndRoll(prtScn.info.cam, offsetX, offsetY);
 
 
-
-
-    //TODO reset samples and depth here
-    if(prtScn.info.cam.dirty){
-
-    }
 
 
 }

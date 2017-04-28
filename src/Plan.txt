@@ -10,6 +10,7 @@ Cleanup code and commented stuff
 Organize Gpu Code
 Add Gpu Box
 
+
 Prep up the CPU Code
 Remove long headers comments from other files add back where possible
 
@@ -47,9 +48,14 @@ Report additions
 =>Basic Loop Addition
 =>Write about GUI controls
 =>Optimizations avoid branching by using arr of function ptrs
+=>Optimization with BVH (minimal thread divergence and other stuff from blob)
+
+
+
 
 COULD BE DONE(IN SLIDES)
 Support for material editing
+Support for stream Compaction
 
 
 

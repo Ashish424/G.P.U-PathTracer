@@ -23,7 +23,7 @@ struct CamInfo{
     float aspect;
     float fov;
     bool dirty = true;
-
+    glm::vec2 camBias = glm::vec2(0.1,0.1);
 };
 
 
@@ -45,6 +45,8 @@ struct kernelInfo{
     dim3 blockSize;
     uint64_t hash = 0;
     unsigned int * dev_drawRes;
+    vec3 * accumBuffer = nullptr;
+
     int width,height;
     CamInfo cam;
     glm::vec4 *  triangleTex = nullptr;
@@ -53,12 +55,12 @@ struct kernelInfo{
     size_t numSpheres = 0;
     bool cullBackFaces = true;
     unsigned int depth = 1;
+    unsigned int samples = 1;
 
 
-
+    uint64_t constantPdf = 1;
     BVHData bvhData;
 
-    int samples=1;
 };
 
 

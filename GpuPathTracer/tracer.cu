@@ -190,14 +190,11 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
                 // multiply mask with colour of object
                 mask *= objcol;
 
-
-                if(x == 9*w/10 && y == 9*h/10) {
-//                    printf("phi is %f\n",phi);
-                    printf("next dir printing %f %f %f\n", nextdir.x, nextdir.y, nextdir.z);
-                    printf("hit pos printing %f %f %f\n",hitpos.x, hitpos.y, hitpos.z);
-
-
-                }
+//TODO remove debugging only
+//                if(x == 9*w/10 && y == 9*h/10) {
+//                    printf("next dir printing %f %f %f\n", nextdir.x, nextdir.y, nextdir.z);
+//                    printf("hit pos printing %f %f %f\n",hitpos.x, hitpos.y, hitpos.z);
+//                }
 
             }
 
@@ -281,16 +278,9 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
 
 
 
-
-//            if(x == w/2 && y == h/2){
-//                printf("cam orig%f %f %f cam dir %f %f %f\n",currRay.origin.x,currRay.origin.y,currRay.origin.z,currRay.dir.x,currRay.dir.y,currRay.dir.z);
-//            }
         }
 
 
-        if(x == 9*w/10 && y == 9*h/10){
-            printf("seperator\n");
-        }
 
 
         return accucolor;
@@ -350,7 +340,6 @@ __global__ void trace(const kernelInfo info){
     size_t pixelPos = y*info.width+x;
 
 
-    //TODO move it to above kernel
     curandState randState; // state of the random number generator, to prevent repetition
     curand_init(info.hash + (blockIdx.x + blockIdx.y * gridDim.x) * (blockDim.x * blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x, 0, 0, &randState);
 
@@ -362,14 +351,41 @@ __global__ void trace(const kernelInfo info){
     uchar3 c3 = make_uchar3(255,255,255);
     const int samples = info.samples;
     vec3 finalcol(0,0,0);
+    //TODO remove samples from here as already convergence
     for (int s = 0; s < samples; ++s) {
         finalcol += getSample(info,&randState)*(1.0f/samples);
     }
-    finalcol = glm::clamp(finalcol,vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f));
 
-    c3.x*=finalcol.x;
-    c3.y*=finalcol.y;
-    c3.z*=finalcol.z;
+
+
+
+    if(x == 0 && y == 0){
+        printf("cam dirt%d\n",info.cam.dirty);
+    }
+
+
+
+    if(info.cam.dirty){
+        assert(info.constantPdf == 1);
+        info.accumBuffer[pixelPos]=finalcol;
+    }
+    else{
+
+        if(x == 0 && y == 0){
+            printf("accumulating\n");
+            printf("info constantpdf is %lu",info.constantPdf);
+        }
+        vec3 initVal = info.accumBuffer[pixelPos];
+        initVal*=(info.constantPdf-1);
+        initVal+=finalcol;
+        initVal*=(1.0f/info.constantPdf);
+        initVal = glm::clamp(initVal,vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f));
+        info.accumBuffer[pixelPos] = initVal;
+    }
+
+    c3.x*=info.accumBuffer[pixelPos].x;
+    c3.y*=info.accumBuffer[pixelPos].y;
+    c3.z*=info.accumBuffer[pixelPos].z;
 
     info.dev_drawRes[pixelPos] = rgbToUint(c3.x,c3.y,c3.z);
 
