@@ -411,6 +411,10 @@ void BasicScene::run() {
 //        memTimer.Stop();
 //        std::cout << memTimer.Elapsed() << std::endl;
 
+
+
+
+
         draw();
 
         glfwSwapBuffers(mainWindow);
@@ -441,6 +445,9 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
         else if (key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose(window, GL_TRUE);
         }
+        else if(key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT){
+            sn->info.cam.enabled = !sn->info.cam.enabled;
+        }
     }
 
 }
@@ -466,45 +473,48 @@ void BasicScene::Updater::operator()(double delta) {
 
     float camSpeed = moveSpeed*(float)delta;
 
-
     prtScn.info.cam.dirty = false;
+    if(prtScn.info.cam.enabled) {
 
 
-    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_W)){
-        prtScn.info.cam.dirty = true;
-        prtScn.info.cam.pos+=prtScn.info.cam.up*camSpeed;
-    }
-    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_S)){
-        prtScn.info.cam.dirty = true;
-        prtScn.info.cam.pos-=prtScn.info.cam.up*camSpeed;
-    }
-    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_A)){
-        prtScn.info.cam.dirty = true;
-        prtScn.info.cam.pos-=prtScn.info.cam.right*camSpeed;
-    }
-    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_D)){
-        prtScn.info.cam.dirty = true;
-        prtScn.info.cam.pos+=prtScn.info.cam.right*camSpeed;
-    }
+        if (glfwGetKey(prtScn.mainWindow, GLFW_KEY_W)) {
+            prtScn.info.cam.dirty = true;
+            prtScn.info.cam.pos += prtScn.info.cam.up * camSpeed;
+        }
+        if (glfwGetKey(prtScn.mainWindow, GLFW_KEY_S)) {
+            prtScn.info.cam.dirty = true;
+            prtScn.info.cam.pos -= prtScn.info.cam.up * camSpeed;
+        }
+        if (glfwGetKey(prtScn.mainWindow, GLFW_KEY_A)) {
+            prtScn.info.cam.dirty = true;
+            prtScn.info.cam.pos -= prtScn.info.cam.right * camSpeed;
+        }
+        if (glfwGetKey(prtScn.mainWindow, GLFW_KEY_D)) {
+            prtScn.info.cam.dirty = true;
+            prtScn.info.cam.pos += prtScn.info.cam.right * camSpeed;
+        }
 
 
-    double xPos,yPos;
-    glfwGetCursorPos(prtScn.mainWindow,&xPos,&yPos);
-    if (firstMouse) {
-        firstMouse = false;
+        double xPos, yPos;
+        glfwGetCursorPos(prtScn.mainWindow, &xPos, &yPos);
+        if (firstMouse) {
+            firstMouse = false;
+            lastX = xPos;
+            lastY = yPos;
+        }
+        float offsetX = float(xPos - lastX);
+        float offsetY = float(yPos - lastY);
         lastX = xPos;
         lastY = yPos;
+        //TODO there values need to be checked
+        if (offsetX > prtScn.info.cam.camBias.x || offsetY > prtScn.info.cam.camBias.y)
+            prtScn.info.cam.dirty = true;
+        setPitchAndRoll(prtScn.info.cam, offsetX, offsetY);
+
     }
-    float offsetX = float(xPos - lastX);
-    float offsetY = float(yPos - lastY);
-    lastX = xPos;
-    lastY = yPos;
-    //TODO there values need to be checked
-    if(offsetX > prtScn.info.cam.camBias.x || offsetY > prtScn.info.cam.camBias.y)
-        prtScn.info.cam.dirty = true;
-    setPitchAndRoll(prtScn.info.cam, offsetX, offsetY);
-
-
+    else{
+        firstMouse = true;
+    }
 
 
 }
