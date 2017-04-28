@@ -486,8 +486,6 @@ __device__ void intersectBVHandTriangles(const Ray& camRay,float rayMin,float ra
 
     if (hitIndex != -1){
         // remapping tri indices delayed until this point for performance reasons
-        // (slow global memory lookup in de gpuTriIndices array) because multiple triangles per node can potentially be hit
-
         hitIndex = gpuTriIndices[hitIndex];
         geomtype = GeoType::TRI;
     }

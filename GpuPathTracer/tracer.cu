@@ -46,8 +46,6 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
     const int w = info.width;
     const int h = info.height;
 
-
-
 //    if(x == 0 && y ==0 ) {
 //        printf("rei tex size is %ld \n",info.numVerts);
 //        printf("received vars\n");
@@ -59,11 +57,6 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
 //        printf("cam width %f\n",info.cam.dist*info.cam.aspect*info.cam.fov);
 //        printf("tri tex size %ld\n",info.numVerts);
 //    }
-
-
-
-
-    u_char r = u_char(211),g = u_char(211),b = u_char(211),a = 255;
 
 
     Ray currRay = getCamRayDir(info.cam,x,y,w,h,randstate);
@@ -100,10 +93,10 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
 
 //            intersectAllTriangles(triTex,currRay,scene_t,minTriIdx,triTexSize,geomtype,info.cullBackFaces);
             //TODO enable this
-//            intersectBVHandTriangles(currRay,0,F32_MAX,
-//                                     info.bvhData.dev_triNode,
-//                                     info.bvhData.dev_triPtr,
-//                                     info.bvhData.dev_triIndicesPtr, minTriIdx, scene_t,n,geomtype,info.cullBackFaces);
+            intersectBVHandTriangles(currRay,0,F32_MAX,
+                                     info.bvhData.dev_triNode,
+                                     info.bvhData.dev_triPtr,
+                                     info.bvhData.dev_triIndicesPtr, minTriIdx, scene_t,trinormal,geomtype,info.cullBackFaces);
             intersectAllSpeheres(sphereTex,currRay,scene_t,minSphereIdx,sphTexSize,geomtype);
 
 
@@ -111,8 +104,7 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
 //                scene_t = min(scene_t,45.0f);
 //                scene_t = (scene_t-15)/30;
 //                scene_t = sqrt(scene_t);
-//                r = 255*scene_t;
-//                g = 255*scene_t;
+//
 //                return vec3(scene_t,scene_t,scene_t);
 //
 //            }
@@ -132,14 +124,25 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
             else if(geomtype == GeoType::TRI){
 
                 n = normalize(trinormal);
+                if(x == w/2 && y == h/2){
+                    printf("normal of tri is %f %f %f\n",n.x,n.y,n.z);
+                }
                 nl = dot(n, currRay.dir) < 0 ? n : n * -1.0f;  // correctly oriented normal
+
+                //TODO see this
+//                vec3 tri1 = info.bvhData.dev_triPtr[minTriIdx];
+
 
                 //TODO correct here color,mat hardcoded
                 //Vec3f colour = hitTriIdx->_colorf;
-                vec3 colour(0.9f, 0.3f, 0.0f); // hardcoded triangle colour  .9f, 0.3f, 0.0f
+//                float4 col = ;
+                vec3 colour(246.0f/256.0f,94.0/255.0f,70.0/255.0f); // hardcoded triangle colour  .9f, 0.3f, 0.0f
                 objcol = colour;
-                emit = vec3(0.0, 0.0, 0);  // object emission
+                emit = vec3(0.0, 0.0, 0.0);  // object emission
                 accucolor += (mask * emit);
+
+                mat = Mat::DIFF;
+
 
 
             }
@@ -263,6 +266,7 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
                 // the higher the phong exponent, the closer the perturbed vector is to the ideal reflection direction
                 float phi = 2 * M_PI * curand_uniform(randstate);
                 float r2 = curand_uniform(randstate);
+                //TODO add this to GUI
                 float phongexponent = 30;
                 float cosTheta = powf(1 - r2, 1.0f / (phongexponent + 1));
                 float sinTheta = sqrtf(1 - cosTheta * cosTheta);

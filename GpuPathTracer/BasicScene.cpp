@@ -181,20 +181,21 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         using glm::vec4;
         //vec4 contains sphere pos and radius
         float rad   = 600.0f;
-        float pushX = 80;
-        float pushY = 60;
+        float pushX = 20;
+        float pushY = 15;
 
         thrust::host_vector<Sphere> spheres;
         //posRad,emi,col
-        spheres.push_back(Sphere(vec4(0.0f,-pushY-rad,-20,rad),vec3(0.0f,0.0f,0.0f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4(0.0f, pushY+rad,-20,rad),vec3(0.0f,1.0f,0.0f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4(-pushX-rad,0.0f,-20,rad),vec3(1.0f,0.0f,0.2f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4( pushX+rad,0.0f,-20,rad),vec3(1.0f,1.0f,0.2f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4( 0.0f,0.0f,-rad*1.5-20,rad),vec3(.0f,1.0f,0.8f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4(0.0f,-pushY-rad,-20,rad),vec3(197.0f/255.0f,153.0f/255.0f,92.0f/255.0f),vec3(1.0f,1.0f,1.0f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4(0.0f, pushY+rad,-20,rad),vec3(197.0f/255.0f,153.0f/255.0f,92.0f/255.0f),vec3(1.0f,1.0f,1.0f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4( pushX+rad,0.0f,-20,rad),vec3(165.0f/255.0f,15.0f/255.0f,0.0f/255.0f),vec3(165.0f/255.0f,15.0f/255.0f,0.0f/255.0f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4( -pushX-rad,0.0f,-20,rad),vec3(30.0f/255.0f,76.0f/255.0f,14.0/255.0f),vec3(30.0f/255.0f,76.0f/255.0f,14.0/255.0f),Mat::DIFF));
+
+        spheres.push_back(Sphere(vec4( 0.0f,0.0f,-rad*1.5-20,rad),vec3(197.0f/255.0,153.0f/255.0f,92.0f/255.0f),vec3(1.0f,1.0f,1.0f),Mat::DIFF));
         spheres.push_back(Sphere(vec4( 0.0f,0.0f,rad*1.5+20,rad),vec3(.0f,1.0f,0.8f),vec3(5.0f,5.0f,0.5f),Mat::DIFF));
 
-        spheres.push_back(Sphere(vec4(0.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::REFR));
-        spheres.push_back(Sphere(vec4(12.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::METAL));
+        spheres.push_back(Sphere(vec4(11.0f, -8,-35,4),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::SPEC));
+//        spheres.push_back(Sphere(vec4(12.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::METAL));
 
 
 
@@ -265,7 +266,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
 
 
-        auto holdTris(uf::loadIndexedTris("./cornell_dragon.obj"));
+        auto holdTris(uf::loadIndexedTris("./gto.obj"));
 
 
         SceneMesh scene(holdTris.triIndexes.size(),holdTris.ve.size(),holdTris.triIndexes,holdTris.ve);
@@ -449,9 +450,7 @@ void scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
     float off = scrollSensitivity*(float)yoffset;
     cout << glm::to_string(scn->info.cam.front*off) << endl;
     scn->info.cam.pos+=off*scn->info.cam.front;
-
-
-
+    scn->info.cam.dirty = true;
 
 
 

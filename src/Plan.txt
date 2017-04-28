@@ -12,8 +12,6 @@ Add Gpu Box
 
 
 Prep up the CPU Code
-Remove long headers comments from other files add back where possible
-
 
 
 
@@ -44,7 +42,7 @@ Report additions
 
 =>Initial Depth Depth testing with Cornell Box
 =>bilateral rendering for cpu vs gpu
-=>Basic GPU implementation(=>recursion overhead avoided with loops)
+=>Basic GPU implementation(=>)
 =>Speedup curves
 =>timing data for kernels and total gpu time and cpu comparisions
 =>Speedup should be shown with 2-3 methods and graphs to accompany
@@ -55,10 +53,6 @@ Report additions
 
 
 
-
-COULD BE DONE(IN SLIDES)
-Support for material editing
-Support for stream Compaction
 
 
 
@@ -72,3 +66,4 @@ Support for stream Compaction
 [DONE]add cuda timer events
 [DONE]add support for data structures(BVH)
 [DONE]Controls (movement,reset,mouse)
+[DONE]recursion overhead avoided with loops

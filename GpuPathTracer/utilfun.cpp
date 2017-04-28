@@ -476,7 +476,7 @@ namespace uf {
         for (size_t f = 0; f < attribs.vertices.size()/3; ++f) {
 
             //TODO this offset hardcoded remove
-            vec3 off = vec3(0,0,-21);
+            vec3 off = vec3(0,0,0);
             sendMesh.ve.push_back(glm::vec3(attribs.vertices[0+3*f],attribs.vertices[1+3*f],attribs.vertices[2+3*f])+off);
         }
 

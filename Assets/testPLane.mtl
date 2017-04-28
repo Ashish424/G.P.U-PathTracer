@@ -1,0 +1,12 @@
+# Blender MTL File: 'bunny.blend'
+# Material Count: 1
+
+newmtl Material
+Ns 321.568627
+Ka 0.392473 0.392473 0.392473
+Kd 0.171183 0.171183 0.171183
+Ks 0.704301 0.704301 0.704301
+Ke 1.600000 1.600000 1.600000
+Ni 1.000000
+d 0.500000
+illum 2
