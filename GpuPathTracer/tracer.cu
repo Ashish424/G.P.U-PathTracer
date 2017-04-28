@@ -269,8 +269,11 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
                     }
                 }
             }
+            else if(mat == METAL){
 
 
+
+            }
 
             currRay.origin = hitpos;
             currRay.dir = nextdir;

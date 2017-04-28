@@ -57,17 +57,13 @@ private:
     void update(double delta);
     //update is a functor
     struct Updater{
-        //TODO make parent Scene a template class :)
         Updater(BasicScene & prtScn):prtScn(prtScn){}
         void operator () (double delta);
         bool firstMouse = true;
         double lastX,lastY;
         BasicScene & prtScn;
     }updater;
-
-
     CudaBVH * gpuBVH = nullptr;
-
     CamInfo savecam;
 
 };

@@ -22,7 +22,6 @@ GUI Design
 =>Cuda controls(Ray depth,Samples,block size)
 Interactive Samples,Interactive Depth
 =>Display stuff like kernel execution time,texture mapping
-=>Gl controls(Fog)
 =>BackFace Culling
 =>Air refractive index,glass ka refractive index
 
