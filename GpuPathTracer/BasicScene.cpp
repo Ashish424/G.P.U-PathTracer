@@ -20,9 +20,10 @@
 #include "CommomStructs.hpp"
 #include "BVH.hpp"
 #include "CudaBVH.hpp"
-
-
-
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <GLFW/glfw3.h>
+#include <imgui_impl_glfw_gl3.h>
 
 float MouseSensitivity = 0.25f;
 float moveSpeed = 10.0f;
@@ -73,6 +74,8 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
     }
     mainWindow = uf::createWindow(width,height,title.c_str());
+
+    ImGui_ImplGlfwGL3_Init(mainWindow, true);
     if(mainWindow == nullptr){
         cout <<"failed to create glfw window,exiting" << endl;
         exit(EXIT_FAILURE);
@@ -513,7 +516,16 @@ void BasicScene::update(double delta) {
 
 
 }
+void myWindow(bool val){
+    ImGui::Begin("Test Window", &val);
+    float f;
+    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 
+    ImGui::Text("Hello");
+    if (ImGui::Button("Button")) { std:: cout <<"button named button clicked" << std::endl;
+    }
+    ImGui::End();
+}
 void BasicScene::draw() {
 
 
@@ -532,5 +544,16 @@ void BasicScene::draw() {
     glBindVertexArray(renderQuad.vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
+    ImGui_ImplGlfwGL3_NewFrame();
 
+    // 1. Show a simple window
+    // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+    myWindow(true);
+    int display_w, display_h;
+    glfwGetFramebufferSize(mainWindow, &display_w, &display_h);
+    glViewport(0, 0, display_w, display_h);
+
+    ImGui::Render();
 }
+
+
