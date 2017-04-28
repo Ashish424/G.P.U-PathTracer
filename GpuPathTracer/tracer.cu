@@ -73,10 +73,12 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
     u_char r = u_char(211),g = u_char(211),b = u_char(211),a = 255;
 
 
-    Ray currRay = getCamRayDir(info.cam,x,y,w,h);
-    
-    
-    
+    Ray currRay = getCamRayDir(info.cam,x,y,w,h,randstate);
+
+
+
+
+
     {
         vec3 mask = vec3(1.0f, 1.0f, 1.0f); // colour mask
         vec3 accucolor = vec3(0.0f, 0.0f, 0.0f); // accumulated colour
@@ -368,6 +370,7 @@ __global__ void trace(const kernelInfo info){
     initVal*=(1.0f/info.constantPdf);
     initVal = glm::clamp(initVal,vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f));
     info.accumBuffer[pixelPos] = initVal;
+
 
     c3.x*=info.accumBuffer[pixelPos].x;
     c3.y*=info.accumBuffer[pixelPos].y;

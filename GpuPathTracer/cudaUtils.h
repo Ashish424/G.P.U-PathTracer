@@ -8,6 +8,7 @@
 #include "BasicScene.hpp"
 #include <glm/glm.hpp>
 #include <device_launch_parameters.h>
+#include <curand_kernel.h>
 
 
 
@@ -111,14 +112,18 @@ __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const
 __device__ void intersectAllSpeheres(const vec4 * sphereTex,const Ray & camRay,float& t_scene, int & sphere_id, const size_t numSpheres, int& geomtype);
 
 
-__device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const int w,const int h){
+__device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const int w,const int h,curandState* randstate){
 
 
 
+
+
+    float jitterValueX = curand_uniform(randstate) - 0.5f;
+    float jitterValueY = curand_uniform(randstate) - 0.5f;
 
     //objects need to have negative coords relative to camera
-    const float xStep = (px - w/2.0f + 0.5)*cam.dist*cam.aspect*cam.fov/w;
-    const float yStep = (py - h/2.0f + 0.5)*cam.dist*cam.fov/h;
+    const float xStep = (px - w/2.0f + 0.5f+jitterValueX)*cam.dist*cam.aspect*cam.fov/w;
+    const float yStep = (py - h/2.0f + 0.5f+jitterValueY)*cam.dist*cam.fov/h;
 
     glm::vec3 dir = cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep);
 
