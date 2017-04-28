@@ -98,7 +98,7 @@ namespace uf {
 
     }
     std::vector<char> fileToCharArr(const std::string & filename,bool printFile) {
-//FIXME add error checking for filepath
+
         std::ifstream inputFileHandle;
         inputFileHandle.open(filename);
         auto start = inputFileHandle.tellg();
@@ -327,16 +327,13 @@ namespace uf {
         }
 
         //TODO disable this debugging info later
-        std::cout << "# of shapes    : " << shapes.size() << std::endl;
-        std::cout << "# of indexes    : " << shapes[0].mesh.indices.size() << std::endl;
-        std::cout << "# of materials : " << materials.size() << std::endl;
-        std::cout << "# of verts : " << attribs.vertices.size() << std::endl;
+//        std::cout << "# of shapes    : " << shapes.size() << std::endl;
+//        std::cout << "# of indexes    : " << shapes[0].mesh.indices.size() << std::endl;
+//        std::cout << "# of materials : " << materials.size() << std::endl;
+//        std::cout << "# of verts : " << attribs.vertices.size() << std::endl;
 
 
-//        for (size_t i = 0; i < attribs.vertices.size()/3; ++i) {
-//            cout << attribs.vertices[i] << attribs.vertices[i+1] << attribs.vertices[i+2] << endl;
-//
-//        }
+
 
         for (size_t i = 0; i < shapes.size(); ++i) {
             assert((shapes[i].mesh.indices.size() % 3) == 0);
@@ -512,17 +509,15 @@ namespace uf {
             }
         }
         //TODO disable this debugging info later
-        std::cout << "# of shapes    : " << shapes.size() << std::endl;
-        std::cout << "# of indexes    : " << sendMesh.triIndexes.size() << std::endl;
-        std::cout << "# of verts : " << sendMesh.ve.size()<< std::endl;
-
-
-        for (int i = 0; i < sendMesh.ve.size(); ++i) {
-            cout <<"verts " << glm::to_string(sendMesh.ve[i]) << endl;
-        }
-        for (int i = 0; i < sendMesh.triIndexes.size(); ++i) {
-            cout << "indexes "<< glm::to_string(sendMesh.triIndexes[i].vertices) << endl;
-        }
+//        std::cout << "# of shapes    : " << shapes.size() << std::endl;
+//        std::cout << "# of indexes    : " << sendMesh.triIndexes.size() << std::endl;
+//        std::cout << "# of verts : " << sendMesh.ve.size()<< std::endl;
+//        for (int i = 0; i < sendMesh.ve.size(); ++i) {
+//            cout <<"verts " << glm::to_string(sendMesh.ve[i]) << endl;
+//        }
+//        for (int i = 0; i < sendMesh.triIndexes.size(); ++i) {
+//            cout << "indexes "<< glm::to_string(sendMesh.triIndexes[i].vertices) << endl;
+//        }
 
 
 

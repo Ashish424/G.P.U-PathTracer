@@ -13,9 +13,6 @@
 
 
 
-//TODO move these headers to cudaUtils.cuh file
-
-
 using glm::vec3;
 using glm::vec4;
 
@@ -122,13 +119,13 @@ __device__ Ray getCamRayDir(const CamInfo & cam ,const int px,const int py,const
     float jitterValueY = curand_uniform(randstate) - 0.5f;
 
     //objects need to have negative coords relative to camera
-    const float xStep = (px - w/2.0f + 0.5f+jitterValueX)*cam.dist*cam.aspect*cam.fov/w;
-    const float yStep = (py - h/2.0f + 0.5f+jitterValueY)*cam.dist*cam.fov/h;
+    const float xStep = (px - w/2.0f + 0.5f+jitterValueX)*cam.dist*cam.aspect*cam.fov/(w-1);
+    const float yStep = (py - h/2.0f + 0.5f+jitterValueY)*cam.dist*cam.fov/(h-1);
 
     glm::vec3 dir = cam.front*cam.dist+cam.right*(1.0f*xStep)+cam.up*(1.0f*yStep);
 
 
-    //TODO ray begins at the near plane and add random sampling here
+
     return Ray(cam.pos+dir,normalize(dir));
 
 
@@ -406,11 +403,11 @@ __device__ void intersectBVHandTriangles(const Ray& camRay,float rayMin,float ra
                 stackPtr -= 4;  // decrement by 4 bytes (stackPtr is a pointer to char)
             }
 
+            //TODO remove this assembly stuff from here
+
             // All SIMD lanes have found a leaf => process them.
             // NOTE: inline PTX implementation of "if(!__any(leafAddr >= 0)) break;".
-            // tried everything with CUDA 4.2 but always got several redundant instructions.
-
-            // if (!searchingLeaf){ break;  }
+          // if (!searchingLeaf){ break;  }
 
             // if (!__any(searchingLeaf)) break; // "__any" keyword: if none of the threads is searching a leaf, in other words
             // if all threads in the warp found a leafnode, then break from while loop and go to triangle intersection
@@ -420,7 +417,6 @@ __device__ void intersectBVHandTriangles(const Ray& camRay,float rayMin,float ra
 
             unsigned int mask; // mask replaces searchingLeaf in PTX code
 
-            //TODO remove this assembly stuff from here
             asm("{\n"
                     "   .reg .pred p;               \n"
                     "setp.ge.s32        p, %1, 0;   \n"

@@ -48,10 +48,8 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
 
 
 
-    if(x == 0 && y ==0 ) {
-
+//    if(x == 0 && y ==0 ) {
 //        printf("rei tex size is %ld \n",info.numVerts);
-        //TODO keep this function and disable it
 //        printf("received vars\n");
 //        printf("%f\n",info.cam.dist);
 //        printf("%f\n",info.cam.fov);
@@ -60,14 +58,9 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
 //        printf("%d\n",info.height);
 //        printf("cam width %f\n",info.cam.dist*info.cam.aspect*info.cam.fov);
 //        printf("tri tex size %ld\n",info.numVerts);
-    }
+//    }
 
 
-    //test texture cuda
-
-//    float4 col  = tex1Dfetch<float4>(info.triangleTex,pixelPos);
-//    glm::vec4 newVec = f4tov(col);
-//    col = vtof4(newVec);
 
 
     u_char r = u_char(211),g = u_char(211),b = u_char(211),a = 255;
@@ -192,11 +185,6 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
                 // multiply mask with colour of object
                 mask *= objcol;
 
-//TODO remove debugging only
-//                if(x == 9*w/10 && y == 9*h/10) {
-//                    printf("next dir printing %f %f %f\n", nextdir.x, nextdir.y, nextdir.z);
-//                    printf("hit pos printing %f %f %f\n",hitpos.x, hitpos.y, hitpos.z);
-//                }
 
             }
 
@@ -270,6 +258,32 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
                 }
             }
             else if(mat == METAL){
+
+                // compute random perturbation of ideal reflection vector
+                // the higher the phong exponent, the closer the perturbed vector is to the ideal reflection direction
+                float phi = 2 * M_PI * curand_uniform(randstate);
+                float r2 = curand_uniform(randstate);
+                float phongexponent = 30;
+                float cosTheta = powf(1 - r2, 1.0f / (phongexponent + 1));
+                float sinTheta = sqrtf(1 - cosTheta * cosTheta);
+
+                // create orthonormal basis uvw around reflection vector with hitpoint as origin
+                // w is ray direction for ideal reflection
+                vec3 w1 = currRay.dir - n * 2.0f * dot(n, currRay.dir); w1 = normalize(w1);
+                vec3 u = cross((fabs(w1.x) > .1 ? vec3(0, 1, 0) : vec3(1, 0, 0)), w1); u = normalize(u);
+                vec3 v = cross(w1, u); // v is already normalised because w and u are normalised
+
+                // compute cosine weighted random ray direction on hemisphere
+                nextdir = u * cosf(phi) * sinTheta + v * sinf(phi) * sinTheta + w * cosTheta;
+                nextdir = normalize(nextdir);
+
+
+                //TODO magic num here
+                // offset origin next path segment to prevent self intersection
+                hitpos += nl * 0.0001f;  // scene size dependent
+
+                // multiply mask with colour of object
+                mask *= objcol;
 
 
 
@@ -349,7 +363,6 @@ __global__ void trace(const kernelInfo info){
 
     //TODO add background color here
 
-    //TODO replace uchar with int and in opengl shader see effect
     uchar3 c3 = make_uchar3(255,255,255);
     vec3 finalcol(0,0,0);
 

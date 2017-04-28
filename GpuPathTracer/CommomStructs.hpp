@@ -34,7 +34,7 @@ struct Sphere {
     }
 
 
-    //TODO testing constructor only remove it
+
     __host__ __device__ Sphere(const glm::vec4 & posRad,const vec3 & emi,const vec3 & col,const Mat & mat):posRad(posRad),emi(emi),col(col),mat(mat){}
 };
 

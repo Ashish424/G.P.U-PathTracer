@@ -15,13 +15,7 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(deps/glfw)
 
-#TODO delete assimp from code
-#option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
-#option(ASSIMP_BUILD_SAMPLES OFF)
-#option(ASSIMP_BUILD_TESTS OFF)
-#add_subdirectory(deps/assimp)
 
-add_subdirectory(deps/yaml-cpp)
 
 include_directories(
         "deps/glad/include"

@@ -103,7 +103,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
     //setup draw texture
     {
-        //TODO something unregister maybe
+
         renderQuad.tex = uf::createGlTex2DCuda(width, height);
         checkCudaErrors(cudaGraphicsGLRegisterImage(&cudaTexResource, renderQuad.tex, GL_TEXTURE_2D,
                                                     cudaGraphicsMapFlagsWriteDiscard));
@@ -150,10 +150,10 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         checkCudaErrors(cudaMemset(info.accumBuffer,0,sizeof(vec3)*num_texels));
 
     }
-    //TODO deletions here too
+
 
     size_t numVerts = 0,numSpheres = 0;
-    //TODO move this to main and just copy to gpu here
+
     //cuda texture for triangles
     {
         using glm::vec4;
@@ -169,20 +169,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         cudaMemcpy(gpuTris,thrust::raw_pointer_cast(&cpuTris1[0]),sizeof(vec4)*cpuTris1.size(),cudaMemcpyHostToDevice);
 
 
-//TODO delete this code if not using textures anywhere else
-//        trianglesTex.desc.resType = cudaResourceTypeLinear;
-//        trianglesTex.desc.res.linear.devPtr = thrust::raw_pointer_cast(&gpuTris[0]);
-//        trianglesTex.desc.res.linear.desc = cudaCreateChannelDesc<float4>();
-//        trianglesTex.desc.res.linear.sizeInBytes = sizeof(float4)*cpuTris1.size();
-//
 
-//        memset(&trianglesTex.texDesc, 0, sizeof(trianglesTex.texDesc));
-//        trianglesTex.textureObject = 0;
-//        trianglesTex.texDesc.filterMode = cudaFilterModePoint;
-//        trianglesTex.texDesc.normalizedCoords = 0;
-//        trianglesTex.texDesc.addressMode[0] = cudaAddressModeWrap;
-
-//        cudaCreateTextureObject(&trianglesTex.textureObject, &trianglesTex.desc, &trianglesTex.texDesc, NULL);
 
         numVerts = cpuTris1.size();
     }
@@ -206,11 +193,8 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         spheres.push_back(Sphere(vec4( 0.0f,0.0f,-rad*1.5-20,rad),vec3(.0f,1.0f,0.8f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
         spheres.push_back(Sphere(vec4( 0.0f,0.0f,rad*1.5+20,rad),vec3(.0f,1.0f,0.8f),vec3(5.0f,5.0f,0.5f),Mat::DIFF));
 
-
-
-        spheres.push_back(Sphere(vec4(0.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::SPEC));
-
-        spheres.push_back(Sphere(vec4(12.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::REFR));
+        spheres.push_back(Sphere(vec4(0.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::REFR));
+        spheres.push_back(Sphere(vec4(12.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::METAL));
 
 
 
@@ -262,12 +246,10 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     }
 
 
-    //TODO remove this finally
+
     //cam debug
     {
 
-        cout << glm::to_string(info.cam.up)<< endl;
-        cout << glm::to_string(info.cam.right)<< endl;
 
 
 //      objects need to have negative coords relative to camera
@@ -275,13 +257,11 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         const float yStep = (height - height/2.0f)*info.cam.dist*info.cam.fov/height;
 
         glm::vec3 dir = info.cam.front*info.cam.dist+info.cam.right*(1.0f*xStep)+info.cam.up*(1.0f*yStep);
-        cout << "pos string "<<glm::to_string(dir)<< endl;
-
 
     }
 
 
-    //TODO move this out later to a struct setup bvh
+
     {
 
 
@@ -297,9 +277,9 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         BVH myBVH(&scene, defaultplatform, defaultparams);
 
         std::cout << "Building CudaBVH\n";
-        //TODO remove layout from arg
+
         gpuBVH = new CudaBVH(myBVH,BVHLayout_Compact);
-        //TODO delete gpuBVH
+
 
 
         // allocate and copy scene databuffers to the GPU (BVH nodes, triangle vertices, triangle indices)
@@ -337,6 +317,14 @@ BasicScene::~BasicScene() {
 
 
 
+
+
+    free(gpuBVH);
+
+
+    checkCudaErrors(cudaFree(info.bvhData.dev_triNode));
+    checkCudaErrors(cudaFree(info.bvhData.dev_triIndicesPtr));
+    checkCudaErrors(cudaFree(info.bvhData.dev_triPtr));
 
 
     checkCudaErrors(cudaGraphicsUnregisterResource(cudaTexResource));
@@ -380,7 +368,7 @@ void BasicScene::run() {
         glfwPollEvents();
         update(delta);
 
-        //TODO see if lower level sync here
+
         //wait till prev frame done
         checkCudaErrors(cudaStreamSynchronize(0));
 
@@ -508,7 +496,6 @@ void BasicScene::Updater::operator()(double delta) {
         float offsetY = float(yPos - lastY);
         lastX = xPos;
         lastY = yPos;
-        //TODO there values need to be checked
         if (offsetX > prtScn.info.cam.camBias.x || offsetY > prtScn.info.cam.camBias.y)
             prtScn.info.cam.dirty = true;
         setPitchAndRoll(prtScn.info.cam, offsetX, offsetY);
@@ -538,7 +525,6 @@ void BasicScene::draw() {
 
     glUseProgram(renderQuad.program);
 
-    //TODO optimize on this binding calls just bind them once since this the only opengl thing you do
     glBindTexture(GL_TEXTURE_2D, renderQuad.tex);
     glActiveTexture(GL_TEXTURE0);
 
@@ -549,17 +535,11 @@ void BasicScene::draw() {
     glBindVertexArray(0);
 
 
-
-    ImGui_ImplGlfwGL3_NewFrame();
-
-    // 1. Show a simple window
-    // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-    drawWindow(true);
-    int display_w, display_h;
-//    glfwGetFramebufferSize(mainWindow, &display_w, &display_h);
-//    glViewport(0, 0, display_w, display_h);
-
-    ImGui::Render();
+    {
+        ImGui_ImplGlfwGL3_NewFrame();
+        drawWindow(true);
+        ImGui::Render();
+    }
 }
 
 void BasicScene::drawWindow(bool visible) {
