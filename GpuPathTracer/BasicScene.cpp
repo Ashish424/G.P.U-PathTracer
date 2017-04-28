@@ -84,7 +84,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 //        glfwSetCursorPosCallback(mainWindow, mousePosCallback);
         glfwSetKeyCallback(mainWindow, keyCallback);
         glfwSetScrollCallback(mainWindow, scrollCallback);
-        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+//        glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
     if(!uf::initGlad()){
@@ -183,9 +183,28 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
         using glm::vec4;
         //vec4 contains sphere pos and radius
-        float rad= 30.0f;
+        float rad   = 600.0f;
+        float pushX = 80;
+        float pushY = 60;
+
         thrust::host_vector<Sphere> spheres;
-        spheres.push_back(Sphere(vec4(0.0f, 0,-40,rad/2)));
+        //posRad,emi,col
+        spheres.push_back(Sphere(vec4(0.0f,-pushY-rad,-20,rad),vec3(0.0f,0.0f,0.0f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4(0.0f, pushY+rad,-20,rad),vec3(0.0f,1.0f,0.0f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4(-pushX-rad,0.0f,-20,rad),vec3(1.0f,0.0f,0.2f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4( pushX+rad,0.0f,-20,rad),vec3(1.0f,1.0f,0.2f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4( 0.0f,0.0f,-rad*1.5-20,rad),vec3(.0f,1.0f,0.8f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
+//        spheres.push_back(Sphere(vec4( 0.0f,0.0f,rad*1.5+20,rad),vec3(.0f,1.0f,0.8f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
+
+
+
+        spheres.push_back(Sphere(vec4(0.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::SPEC));
+
+
+
+
+
+
         //TODO see if pinned memory here
         cudaMalloc(&gpuSpheres,sizeof(Sphere)*spheres.size());
         cudaMemcpy(gpuSpheres,thrust::raw_pointer_cast(&spheres[0]),sizeof(Sphere)*spheres.size(),cudaMemcpyHostToDevice);
@@ -203,7 +222,8 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         info.sphereTex = gpuSpheres;
         info.numSpheres = numSpheres;
         info.cullBackFaces = true;
-        info.depth = 1;
+        info.depth = 4;
+        info.samples = 1;
     }
 
     //setup camera
@@ -224,6 +244,8 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         info.cam.right = glm::vec3(-info.cam.front.z,0,info.cam.front.x);
         info.cam.up    = glm::normalize(glm::cross(info.cam.right,info.cam.front));
         info.cam.pos   = glm::vec3(0,0,0);
+        //save cam state to reset easily
+        savecam = info.cam;
 
     }
 
@@ -274,40 +296,22 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         cudaMalloc((void**)&info.bvhData.dev_triNode, gpuBVH->getGpuNodesSize() * sizeof(vec4));
         cudaMemcpy(info.bvhData.dev_triNode, gpuBVH->getGpuNodes(), gpuBVH->getGpuNodesSize() * sizeof(vec4), cudaMemcpyHostToDevice);
 
-        cudaMalloc((void**)&info.bvhData.dev_triWoopTpr, gpuBVH->getGpuTriWoopSize() * sizeof(vec4));
-        cudaMemcpy(info.bvhData.dev_triWoopTpr, gpuBVH->getGpuTriWoop(), gpuBVH->getGpuTriWoopSize() * sizeof(vec4), cudaMemcpyHostToDevice);
 
-        cudaMalloc((void**)&info.bvhData.dev_triIndicesTpr, gpuBVH->getGpuTriIndicesSize()* sizeof(int));
-        cudaMemcpy(info.bvhData.dev_triIndicesTpr,gpuBVH->getGpuTriIndices(),gpuBVH->getGpuTriIndicesSize() * sizeof(int), cudaMemcpyHostToDevice);
+        cudaMalloc((void**)&info.bvhData.dev_triIndicesPtr, gpuBVH->getGpuTriIndicesSize()* sizeof(int));
+        cudaMemcpy(info.bvhData.dev_triIndicesPtr,gpuBVH->getGpuTriIndices(),gpuBVH->getGpuTriIndicesSize() * sizeof(int), cudaMemcpyHostToDevice);
 
 
-        cudaMalloc((void**)&info.bvhData.dev_triDebugPtr, gpuBVH->getDebugTriSize()* sizeof(vec4));
-        cudaMemcpy(info.bvhData.dev_triDebugPtr,gpuBVH->getDebugTri(),gpuBVH->getDebugTriSize() * sizeof(vec4), cudaMemcpyHostToDevice);
+        cudaMalloc((void**)&info.bvhData.dev_triPtr, gpuBVH->getDebugTriSize()* sizeof(vec4));
+        cudaMemcpy(info.bvhData.dev_triPtr,gpuBVH->getDebugTri(),gpuBVH->getDebugTriSize() * sizeof(vec4), cudaMemcpyHostToDevice);
 
 
-//TODO remove these
-//        cudaRender(cudaNodePtr, cudaTriWoopPtr, cudaTriDebugPtr, cudaTriIndicesPtr, finaloutputbuffer,
-//                   accumulatebuffer, gpuHDRenv, framenumber, hashedframes, nodeSize, leafnode_count, triangle_count, cudaRendercam);
-//        void cudaRender(const float4* cudaNodes, const float4* cudaTriWoops, const float4* cudaDebugTris, const int* cudaTriInds,
-//                        Vec3f* outputbuf, Vec3f* accumbuf, const float4* HDRmap, const unsigned int framenumber, const unsigned int hashedframenumber,
-//                        const unsigned int totalnodecnt, const unsigned int leafnodecnt, const unsigned int tricnt, const Camera* cudaRenderCam);
+
 
 
 
         info.bvhData.triNodeSize = gpuBVH->getGpuNodesSize();
         info.bvhData.triIndicesSize = gpuBVH->getGpuTriIndicesSize();
-        info.bvhData.triWoopSize = gpuBVH->getGpuTriWoopSize();
-        info.bvhData.leafCount = gpuBVH->getLeafnodeCount();
-        info.bvhData.triCount = gpuBVH->getTriCount();
-        info.bvhData.triDebugSize = gpuBVH->getDebugTriSize();
-
-
-
-//        nodeSize = gpuBVH->getGpuNodesSize();
-//        triWoopSize = gpuBVH->getGpuTriWoopSize();
-//        triIndicesSize = gpuBVH->getGpuTriIndicesSize();
-//        leafnode_count = gpuBVH->getLeafnodeCount();
-//        triangle_count = gpuBVH->getTriCount();
+        info.bvhData.triSize = gpuBVH->getDebugTriSize();
 
 
 
@@ -417,10 +421,9 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
     auto sn  = (BasicScene * )glfwGetWindowUserPointer(window);
     assert(sn!= nullptr && sn->mainWindow == window);
 
-    //TODO imp add here the reset button to get back to camera default pos
     if(action == GLFW_PRESS) {
         if (key == GLFW_KEY_R) {
-
+            sn->info.cam = sn->savecam;
         }
         else if (key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose(window, GL_TRUE);
@@ -451,46 +454,48 @@ void BasicScene::Updater::operator()(double delta) {
     float camSpeed = moveSpeed*(float)delta;
 
 
-    bool panning = false;
 
     if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_W)){
+        prtScn.info.cam.dirty = true;
         prtScn.info.cam.pos+=prtScn.info.cam.up*camSpeed;
     }
     if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_S)){
+        prtScn.info.cam.dirty = true;
         prtScn.info.cam.pos-=prtScn.info.cam.up*camSpeed;
     }
     if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_A)){
+        prtScn.info.cam.dirty = true;
         prtScn.info.cam.pos-=prtScn.info.cam.right*camSpeed;
     }
     if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_D)){
+        prtScn.info.cam.dirty = true;
         prtScn.info.cam.pos+=prtScn.info.cam.right*camSpeed;
-    }
-    if(glfwGetKey(prtScn.mainWindow,GLFW_KEY_LEFT_SHIFT)||glfwGetKey(prtScn.mainWindow,GLFW_KEY_RIGHT_SHIFT)){
-        panning = true;
     }
 
 
     double xPos,yPos;
     glfwGetCursorPos(prtScn.mainWindow,&xPos,&yPos);
-    if(!panning) {
-        if (firstMouse) {
-            firstMouse = false;
-            lastX = xPos;
-            lastY = yPos;
-        }
-        float offsetX = float(xPos - lastX);
-        float offsetY = float(yPos - lastY);
+    if (firstMouse) {
+        firstMouse = false;
         lastX = xPos;
         lastY = yPos;
-        setPitchAndRoll(prtScn.info.cam, offsetX, offsetY);
     }
-    else{
-        //implement panning here
+    float offsetX = float(xPos - lastX);
+    float offsetY = float(yPos - lastY);
+    lastX = xPos;
+    lastY = yPos;
+    //TODO there values need to be checked
+    if(offsetX > 0.1f || offsetY > 0.1f)
+        prtScn.info.cam.dirty = true;
+    setPitchAndRoll(prtScn.info.cam, offsetX, offsetY);
 
 
-        firstMouse = true;
+
+
+    //TODO reset samples and depth here
+    if(prtScn.info.cam.dirty){
+
     }
-
 
 
 }

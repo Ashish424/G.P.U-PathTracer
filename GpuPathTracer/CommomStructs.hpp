@@ -9,7 +9,7 @@
 using glm::vec3;
 using glm::vec4;
 enum GeoType { TRI, SPHERE,BOX,NONE };
-enum Mat { DIFF, METAL, SPEC, REFR, COAT };
+enum Mat { DIFF, METAL, SPEC, REFR};
 struct Ray {
     vec3 origin,dir;
     __host__ __device__ Ray(vec3 o, vec3 d) : origin(o), dir(d) {}
@@ -19,7 +19,8 @@ struct Sphere {
     glm::vec4 posRad;
    	vec3 emi, col;//emission, color
     Mat mat;
-    __device__ float intersect(const Ray &r) const { // returns distance, 0 if nohit
+    // returns distance, 0 if nohit
+    __device__ float intersect(const Ray &r) const {
 
         vec3 op = vec3(posRad) - r.origin;
         float t, epsilon = 0.01f;
@@ -34,8 +35,7 @@ struct Sphere {
 
 
     //TODO testing constructor only remove it
-    __host__ __device__ Sphere(const glm::vec4 & posRad):posRad(posRad){}
-//    __host__ __device__ Sphere(float rad,vec3 pos,vec3 emi,vec3 col,Mat refl):rad(rad),pos(pos),emi(emi),col(col),refl(refl){}
+    __host__ __device__ Sphere(const glm::vec4 & posRad,const vec3 & emi,const vec3 & col,const Mat & mat):posRad(posRad),emi(emi),col(col),mat(mat){}
 };
 
 

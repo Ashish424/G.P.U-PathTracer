@@ -1,5 +1,6 @@
 # Blender v2.78 (sub 0) OBJ File: 'bunny.blend'
 # www.blender.org
+mtllib sphere.mtl
 o Sphere_Sphere.001
 v 0.000000 3.577215 8.636160
 v 0.000000 6.609831 6.609831
@@ -123,6 +124,7 @@ vn -0.0805 0.1945 0.9776
 vn -0.0805 0.1945 -0.9776
 vn -0.3256 0.7862 -0.5253
 vn -0.3764 0.9087 0.1807
+usemtl None
 s off
 f 2//1 1//1 6//1 7//1
 f 58//2 3//2 11//2 12//2

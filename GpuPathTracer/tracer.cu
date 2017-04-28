@@ -2,10 +2,8 @@
 // Created by ashish on 4/4/17.
 //
 
-//TODO remove this header
+
 #include "device_launch_parameters.h"
-
-
 #include "BasicScene.hpp"
 #include "cuda_runtime.h"
 #include <stdio.h>
@@ -25,17 +23,8 @@
 
 
 
-  // Size of the traversal stack in local memory.
-//texture<float4, 1, cudaReadModeElementType> bvhNodesTexture;
-//texture<float4, 1, cudaReadModeElementType> triWoopTexture;
-//texture<float4, 1, cudaReadModeElementType> triNormalsTexture;
-//texture<int, 1, cudaReadModeElementType> triIndicesTexture;
-//
-//__device__ int counter = 0;
-//>>>>>>> accelerated_BVH
 
-
-__global__ void cudaProcess(const kernelInfo info){
+__device__ glm::vec3 getSample(const kernelInfo & info){
 
 
 
@@ -59,7 +48,7 @@ __global__ void cudaProcess(const kernelInfo info){
 
 
 
-
+    //TODO move it to above kernel
     curandState randState; // state of the random number generator, to prevent repetition
     curand_init(info.hash + (blockIdx.x + blockIdx.y * gridDim.x) * (blockDim.x * blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x, 0, 0, &randState);
 
@@ -77,9 +66,6 @@ __global__ void cudaProcess(const kernelInfo info){
 //        printf("tri tex size %ld\n",info.numVerts);
     }
 
-    if(x>=w || y>=h)
-        return;
-
 
     //test texture cuda
 
@@ -90,7 +76,8 @@ __global__ void cudaProcess(const kernelInfo info){
 
     u_char r = u_char(211),g = u_char(211),b = u_char(211),a = 255;
 
-    Ray camRay = getCamRayDir(info.cam,x,y,w,h);
+
+    Ray currRay = getCamRayDir(info.cam,x,y,w,h);
     
     
     
@@ -120,51 +107,52 @@ __global__ void cudaProcess(const kernelInfo info){
             vec3 trinormal = vec3(0, 0, 0);
             Mat mat;
 
-//            intersectAllTriangles(triTex,camRay,scene_t,minTriIdx,triTexSize,geomtype,false);
-            const vec3 miss(F32_MAX, F32_MAX, F32_MAX);
-            intersectBVHandTriangles(glm::vec4(camRay.origin, 0), glm::vec4(camRay.dir,F32_MAX),
-                                     info.bvhData.dev_triNode, info.bvhData.dev_triDebugPtr,
-                                     info.bvhData.dev_triIndicesTpr, minTriIdx, scene_t,n,geomtype,info.cullBackFaces);
+//            intersectAllTriangles(triTex,currRay,scene_t,minTriIdx,triTexSize,geomtype,info.cullBackFaces);
+            //TODO enable this
+//            intersectBVHandTriangles(currRay,0,F32_MAX,
+//                                     info.bvhData.dev_triNode,
+//                                     info.bvhData.dev_triPtr,
+//                                     info.bvhData.dev_triIndicesPtr, minTriIdx, scene_t,n,geomtype,info.cullBackFaces);
+            intersectAllSpeheres(sphereTex,currRay,scene_t,minSphereIdx,sphTexSize,geomtype);
 
-            if(scene_t < tmax){
-                scene_t = min(scene_t,45.0f);
-                scene_t = (scene_t-15)/30;
-                r = 255*scene_t;
-                g = 255*scene_t;
+
+//            if(scene_t < tmax){
+//                scene_t = min(scene_t,45.0f);
+//                scene_t = (scene_t-15)/30;
+//                scene_t = sqrt(scene_t);
+//                r = 255*scene_t;
+//                g = 255*scene_t;
+//                return vec3(scene_t,scene_t,scene_t);
+//
+//            }
+
+
+            hitpos = currRay.origin+currRay.dir*scene_t;
+            if(geomtype == GeoType::SPHERE){
+                const Sphere & hS = sphereTex[minSphereIdx];
+                vec3 n = hS.getNormal(hitpos);
+
+                vec3 nl = glm::dot(n, currRay.dir) < 0 ? n : n * -1.0f;
+                objcol = hS.col;;   // object colour
+                emit = hS.emi;  // object emission
+                mat = hS.mat;
+                accucolor += (mask * emit);
 
             }
-//            intersectAllSpeheres(sphereTex,camRay,scene_t,minSphereIdx,sphTexSize,geomtype);
+            else if(geomtype == GeoType::TRI){
 
-//            if(geomtype == GeoType::SPHERE){
-//                const Sphere & hS = sphereTex[minSphereIdx];
-//                hitpos = camRay.origin+camRay.dir*scene_t;
-//                vec3 n = hS.getNormal(hitpos);
-//
-//                //TODO see this inversion later for culling
-//                vec3 nl = glm::dot(n, camRay.dir) < 0 ? n : n * -1.0f;
-//                objcol = vec3(hS.col.x, hS.col.y,hS.col.z);   // object colour
-//                emit = vec3(hS.emi.x, hS.emi.y, hS.emi.z);  // object emission
-//                mat = hS.mat;
-//                accucolor += (mask * emit);
-//
-//            }
-//            else if(geomtype == GeoType::TRI){
-//                r = 128;
-//                pBestTri = &triTex[hitTriIdx];
-//                hitpoint = rayorig + raydir * scene_t; // intersection point
-//
-//                // float4 normal = tex1Dfetch(triNormalsTexture, pBestTriIdx);
-//                n = trinormal;
-//                n.normalize();
-//                nl = dot(n, raydir) < 0 ? n : n * -1;  // correctly oriented normal
-//                //vec3 colour = hitTriIdx->_colorf;
-//                vec3 colour = vec3(0.9f, 0.3f, 0.0f); // hardcoded triangle colour  .9f, 0.3f, 0.0f
-//                refltype = COAT; // objectmaterial
-//                objcol = colour;
-//                emit = vec3(0.0, 0.0, 0);  // object emission
-//                accucolor += (mask * emit);
+                n = normalize(trinormal);
+                nl = dot(n, currRay.dir) < 0 ? n : n * -1.0f;  // correctly oriented normal
 
-//            }
+                //TODO correct here color,mat hardcoded
+                //Vec3f colour = hitTriIdx->_colorf;
+                vec3 colour(0.9f, 0.3f, 0.0f); // hardcoded triangle colour  .9f, 0.3f, 0.0f
+                objcol = colour;
+                emit = vec3(0.0, 0.0, 0);  // object emission
+                accucolor += (mask * emit);
+
+
+            }
 //            else if(geomtype == GeoType::BOX){
 //                Box &box = boxes[box_id];
 //                x = r.orig + r.dir*t;  // intersection point on object
@@ -174,38 +162,35 @@ __global__ void cudaProcess(const kernelInfo info){
 //                refltype = box.refl;
 //                emit = box.emi; // box emission
 //                accucolor += (mask * emit);
-
-
 //            }
 
 
 
-            if (mat == DIFF){
+            if (mat == Mat::DIFF){
 
-//                // pick two random numbers
-//                float phi = 2 * M_PI * curand_uniform(randstate);
-//                float r2 = curand_uniform(randstate);
-//                float r2s = sqrtf(r2);
-//
-//                // compute orthonormal coordinate frame uvw with hitpoint as origin
-//                vec3 w = nl; w.normalize();
-//                vec3 u = cross((fabs(w.x) > .1 ? vec3(0, 1, 0) : vec3(1, 0, 0)), w); u.normalize();
-//                vec3 v = cross(w, u);
-//
-//                // compute cosine weighted random ray direction on hemisphere
-//                nextdir = u*cosf(phi)*r2s + v*sinf(phi)*r2s + w*sqrtf(1 - r2);
-//                nextdir.normalize();
-//
-//                // offset origin next path segment to prevent self intersection
-//                hitpoint += nl * 0.001f; // scene size dependent
-//
-//                // multiply mask with colour of object
-//                mask *= objcol;
+                vec3 nt,nb;
+                nt = (fabs(nl.x) > fabs(nl.y))?vec3(nl.z, 0, -nl.x):vec3(0, -nl.z, nl.y);
+                nb = cross(nl,nt);
 
-            } // end diffuse material
-//
+                vec3 randVec = uniformSampleHemisphere(curand_uniform(&randState),curand_uniform(&randState));
+                // compute cosine weighted random ray direction on hemisphere
+                nextdir = vec3(nt.x*randVec.x+nt.y*randVec.y+nt.z*randVec.z,
+                               nb.x*randVec.x+nb.y*randVec.y+nb.z*randVec.z,
+                               nl.x*randVec.x+nl.y*randVec.y+nl.z*randVec.z);
+                nextdir = glm::normalize(nextdir);
+
+                // offset origin next path segment to prevent self intersection
+                //TODO magic num here
+                hitpos += nl * 0.001f; // scene size dependent
+
+                // multiply mask with colour of object
+                mask *= objcol;
+
+            }
+
+
 //            // Phong metal material from "Realistic Ray Tracing", P. Shirley
-//            if (refltype == METAL){
+//            else if (refltype == METAL){
 //
 //                // compute random perturbation of ideal reflection vector
 //                // the higher the phong exponent, the closer the perturbed vector is to the ideal reflection direction
@@ -233,70 +218,26 @@ __global__ void cudaProcess(const kernelInfo info){
 //            }
 //
 //            // ideal specular reflection (mirror)
-//            if (refltype == SPEC){
-//
-//                // compute relfected ray direction according to Snell's law
-//                nextdir = raydir - n * dot(n, raydir) * 2.0f;
-//                nextdir.normalize();
-//
-//                // offset origin next path segment to prevent self intersection
-//                hitpoint += nl * 0.001f;
-//
-//                // multiply mask with colour of object
-//                mask *= objcol;
-//            }
+            else if (mat == Mat::SPEC){
 
 
-            // COAT material based on https://github.com/peterkutz/GPUPathTracer
-            // randomly select diffuse or specular reflection
-            // looks okay-ish but inaccurate (no Fresnel calculation yet)
-//            if (refltype == COAT){
-//
-//                float rouletteRandomFloat = curand_uniform(randstate);
-//                float threshold = 0.05f;
-//                vec3 specularColor = vec3(1, 1, 1);  // hard-coded
-//                bool reflectFromSurface = (rouletteRandomFloat < threshold); //computeFresnel(make_vec3(n.x, n.y, n.z), incident, incidentIOR, transmittedIOR, reflectionDirection, transmissionDirection).reflectionCoefficient);
-//
-//                if (reflectFromSurface) { // calculate perfectly specular reflection
-//
-//                    // Ray reflected from the surface. Trace a ray in the reflection direction.
-//                    // TODO: Use Russian roulette instead of simple multipliers!
-//                    // (Selecting between diffuse sample and no sample (absorption) in this case.)
-//
-//                    mask *= specularColor;
-//                    nextdir = raydir - n * 2.0f * dot(n, raydir);
-//                    nextdir.normalize();
-//
-//                    // offset origin next path segment to prevent self intersection
-//                    hitpoint += nl * 0.001f; // scene size dependent
-//                }
-//
-//                else {  // calculate perfectly diffuse reflection
-//
-//                    float r1 = 2 * M_PI * curand_uniform(randstate);
-//                    float r2 = curand_uniform(randstate);
-//                    float r2s = sqrtf(r2);
-//
-//                    // compute orthonormal coordinate frame uvw with hitpoint as origin
-//                    vec3 w = nl; w.normalize();
-//                    vec3 u = cross((fabs(w.x) > .1 ? vec3(0, 1, 0) : vec3(1, 0, 0)), w); u.normalize();
-//                    vec3 v = cross(w, u);
-//
-//                    // compute cosine weighted random ray direction on hemisphere
-//                    nextdir = u*cosf(r1)*r2s + v*sinf(r1)*r2s + w*sqrtf(1 - r2);
-//                    nextdir.normalize();
-//
-//                    // offset origin next path segment to prevent self intersection
-//                    hitpoint += nl * 0.001f;  // // scene size dependent
-//
-//                    // multiply mask with colour of object
-//                    mask *= objcol;
-//                }
-//            } // end COAT
+                //Snell's law
+                nextdir = currRay.dir - n * dot(n, currRay.dir) * 2.0f;
+                nextdir = glm::normalize(nextdir);
+
+                //TODO this magic num
+                // offset origin next path segment to prevent self intersection
+                hitpos += nl * 0.001f;
+
+                // multiply mask with colour of object
+                mask *= objcol;
+            }
+
+
 
             // perfectly refractive material (glass, water)
             // set ray_tmin to 0.01 when using refractive material
-//            if (refltype == REFR){
+//          else  if (refltype == REFR){
 //
 //                bool into = dot(n, nl) > 0; // is ray entering or leaving refractive material?
 //                float nc = 1.0f;  // Index of Refraction air
@@ -351,7 +292,11 @@ __global__ void cudaProcess(const kernelInfo info){
 //            // set up origin and direction of next path segment
 //            rayorig = hitpoint;
 //            raydir = nextdir;
+
+            currRay.origin = hitpos;
+            currRay.dir = nextdir;
         }
+        return accucolor;
 
 
     }
@@ -383,72 +328,53 @@ __global__ void cudaProcess(const kernelInfo info){
     
     
     
-    
-//    {
-//        float t;
-//        int triangle_id;
-//        int geomtype = -1;
-//
-//        float tmin = 1e20;
-//        float tmax = -1e20;
-//
-//        float d = 1e21;
-//        float k = 1e21;
-//        float q = 1e21;
-//        float inf = t = 1e20;
-//
-//
-//
-//
-//
-//        // if ray hits bounding box of triangle meshes, intersect ray with all triangles
-//        //TODO insert bounding box here
-//        intersectAllTriangles(triTex,camRay, t, triangle_id, triTexSize, geomtype,info.cullBackFaces);
-//
-//
-//
-//
-//
-//
-//        if(t<inf){
-//            t = min(45.0f,t);
-//            t-=15;
-//            t/=30;
-//            r = 255*t;
-//            g = 0;
-//            b = 0;
-//            a = 255;
-//        }
 
-
-
-//         t is distance to closest intersection of ray with all primitives in the scene (spheres, boxes and triangles)
-//        return t<inf;
-
-//    }
-
-
-
-    //sphere test
-//    {
-//
-//        float rad= 300/(sqrt(2.0f)-1);
-//        Sphere sp(rad/2,vec3(0.0f, 0,-rad-h/2),vec3(0,0,0),vec3(0.9f, 0.9f, 0.9f ), DIFF);
-//        float dist = sp.intersect(camRay);
-//
-//        if(dist > 0 ){
-//            r = 0;
-//            g = 255;
-//            b = 0;
-//            a = 255;
-//        }
-//    }
-
-
-    uchar4 c4 = make_uchar4(r, g, b, a);
-    info.dev_drawRes[pixelPos] = rgbToUint(c4.x,c4.y,c4.z);
 
 }
+
+
+
+__global__ void trace(const kernelInfo info){
+
+
+
+
+    uint tx = threadIdx.x;
+    uint ty = threadIdx.y;
+    uint bw = blockDim.x;
+    uint bh = blockDim.y;
+    uint x = blockIdx.x*bw + tx;
+    uint y = blockIdx.y*bh + ty;
+    size_t pixelPos = y*info.width+x;
+
+    const int w = info.width;
+    const int h = info.height;
+
+
+    if(x>=w || y>=h)return;
+
+
+
+    //TODO add background color here
+
+    //TODO replace uchar with int and in opengl shader see effect
+    uchar3 c3 = make_uchar3(255,255,255);
+    const int samples = info.samples;
+    vec3 finalcol(0,0,0);
+    for (int s = 0; s < samples; ++s) {
+        finalcol += getSample(info)*(1.0f/samples);
+    }
+    finalcol = glm::clamp(finalcol,vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f));
+
+    c3.x*=finalcol.x;
+    c3.y*=finalcol.y;
+    c3.z*=finalcol.z;
+
+    info.dev_drawRes[pixelPos] = rgbToUint(c3.x,c3.y,c3.z);
+
+}
+
+
 
 #include <iostream>
 void BasicScene::launchKernel(const kernelInfo &info) {
@@ -457,8 +383,10 @@ void BasicScene::launchKernel(const kernelInfo &info) {
 //    cout << width <<" " << height << endl;
 
 
+
+
      dim3 blocks((info.width+info.blockSize.x)/info.blockSize.x,(info.height+info.blockSize.y)/info.blockSize.y,1);
-     cudaProcess<<<blocks,info.blockSize>>>(info);
+    trace<<<blocks,info.blockSize>>>(info);
 }
 
 

@@ -1,9 +1,6 @@
 add cuda timer events
 (cuda protips)https://devblogs.nvidia.com/parallelforall/category/cuda-pro-tip/
-build basic cuda path tracer
 coheleased memory access using float4
-use thrust for various datastructures
-See if time permits construction on GPU
 https://devblogs.nvidia.com/parallelforall/thinking-parallel-part-iii-tree-construction-gpu/
 Correct Aliasing issues
 use cuda streams
@@ -18,10 +15,11 @@ Organize Gpu Code
 Add Gpu Box
 
 Prep up the CPU Code
-Remove long headers comments from other files
+Remove long headers comments from other files add back where possible
 
 
-
+Controls
+movement,reset,mouse
 
 
 GUI Design
@@ -45,6 +43,7 @@ Overview of Collision Algorithms
 Final Submission
 //clean and build and get rid of all warnings
 Report additions
+
 =>Initial Depth Depth testing with Cornell Box
 =>bilateral rendering for cpu vs gpu
 =>Basic GPU implementation(=>recursion overhead avoided with loops)
@@ -62,4 +61,4 @@ Support for material editing
 [DONE]Basic RayTracing and Camera Setup
 [DONE]Backface Culling Using muller trumbore algorithm
 [DONE]Loading Objects Support
-[DONE]
+[DONE]use thrust for various datastructures

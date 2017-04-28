@@ -22,7 +22,7 @@ struct CamInfo{
     float pitch ,yaw;
     float aspect;
     float fov;
-
+    bool dirty = true;
 
 };
 
@@ -32,15 +32,12 @@ struct BVHData{
 
     vec4 * dev_triNode = nullptr;
     size_t triNodeSize;
-    vec4 * dev_triWoopTpr = nullptr;
-    size_t triWoopSize;
-    int * dev_triIndicesTpr = nullptr;
+    int * dev_triIndicesPtr = nullptr;
     size_t triIndicesSize;
 
-    size_t leafCount;
-    size_t triCount;
-    vec4 *dev_triDebugPtr;
-    size_t triDebugSize;
+
+    vec4 *dev_triPtr;
+    size_t triSize;
 };
 
 
@@ -61,6 +58,7 @@ struct kernelInfo{
 
     BVHData bvhData;
 
+    int samples=1;
 };
 
 

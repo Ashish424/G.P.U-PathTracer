@@ -68,6 +68,7 @@ private:
 
     CudaBVH * gpuBVH = nullptr;
 
+    CamInfo savecam;
 };
 
 
