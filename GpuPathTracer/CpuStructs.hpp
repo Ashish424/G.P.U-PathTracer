@@ -60,6 +60,7 @@ struct kernelInfo{
     uint64_t constantPdf = 1;
     BVHData bvhData;
 
+    float time_elapsed;
 };
 
 

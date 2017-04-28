@@ -393,6 +393,7 @@ void BasicScene::run() {
         g.Start();
         launchKernel(info);
         g.Stop();
+        info.time_elapsed = g.Elapsed();
         std::cout << g.Elapsed() << std::endl;
 
 
@@ -516,16 +517,7 @@ void BasicScene::update(double delta) {
 
 
 }
-void myWindow(bool val){
-    ImGui::Begin("Test Window", &val);
-    float f;
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 
-    ImGui::Text("Hello");
-    if (ImGui::Button("Button")) { std:: cout <<"button named button clicked" << std::endl;
-    }
-    ImGui::End();
-}
 void BasicScene::draw() {
 
 
@@ -548,12 +540,22 @@ void BasicScene::draw() {
 
     // 1. Show a simple window
     // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-    myWindow(true);
+    drawWindow(true);
     int display_w, display_h;
     glfwGetFramebufferSize(mainWindow, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
 
     ImGui::Render();
+}
+
+void BasicScene::drawWindow(bool visible) {
+    ImGui::Begin("Test Window", &visible);
+    float f; int a[2] = {10, 1}, b;
+    ImGui::SliderInt2("Valjue", a, 0, 100);
+    ImGui::Text("Time per frame: %0.2f ms", info.time_elapsed);
+    if (ImGui::Button("Button")) { std:: cout <<"button named button clicked" << std::endl;
+    }
+    ImGui::End();
 }
 
 
