@@ -189,12 +189,15 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
         thrust::host_vector<Sphere> spheres;
         //posRad,emi,col
-        spheres.push_back(Sphere(vec4(0.0f,-pushY-rad,-20,rad),vec3(0.0f,0.0f,0.0f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4(0.0f, pushY+rad,-20,rad),vec3(0.0f,1.0f,0.0f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4(-pushX-rad,0.0f,-20,rad),vec3(1.0f,0.0f,0.2f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4( pushX+rad,0.0f,-20,rad),vec3(1.0f,1.0f,0.2f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4( 0.0f,0.0f,-rad*1.5-20,rad),vec3(.0f,1.0f,0.8f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4( 0.0f,0.0f,rad*1.5+20,rad),vec3(.0f,1.0f,0.8f),vec3(0.0f,0.0f,0.0f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4(0.0f,-pushY-rad,-20,rad),vec3(0.0f,0.0f,0.0f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4(0.0f, pushY+rad,-20,rad),vec3(0.0f,1.0f,0.0f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4(-pushX-rad,0.0f,-20,rad),vec3(1.0f,0.0f,0.2f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4( pushX+rad,0.0f,-20,rad),vec3(1.0f,1.0f,0.2f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4( 0.0f,0.0f,-rad*1.5-20,rad),vec3(.0f,1.0f,0.8f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4( 0.0f,0.0f,rad*1.5+20,rad),vec3(.0f,1.0f,0.8f),vec3(5.0f,5.0f,0.5f),Mat::DIFF));
+
+
+
         spheres.push_back(Sphere(vec4(0.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::SPEC));
 
 

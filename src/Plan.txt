@@ -1,16 +1,12 @@
-add cuda timer events
-(cuda protips)https://devblogs.nvidia.com/parallelforall/category/cuda-pro-tip/
 coheleased memory access using float4
 https://devblogs.nvidia.com/parallelforall/thinking-parallel-part-iii-tree-construction-gpu/
 Correct Aliasing issues
 use cuda streams
-add support for data structures(BVH)
 add support for FPS display
 profile with nvidia profiler
 Make sure no printing inside critical loops
 Experiment with different data types
 Cleanup code and commented stuff
-remove assimp stuff
 Organize Gpu Code
 Add Gpu Box
 
@@ -18,8 +14,6 @@ Prep up the CPU Code
 Remove long headers comments from other files add back where possible
 
 
-Controls
-movement,reset,mouse
 
 
 GUI Design
@@ -56,9 +50,16 @@ Report additions
 
 COULD BE DONE(IN SLIDES)
 Support for material editing
+
+
+
+
 [DONE]tried texture memory
 [DONE]setup cuda and opengl interop
 [DONE]Basic RayTracing and Camera Setup
 [DONE]Backface Culling Using muller trumbore algorithm
 [DONE]Loading Objects Support
 [DONE]use thrust for various datastructures
+[DONE]add cuda timer events
+[DONE]add support for data structures(BVH)
+[DONE]Controls (movement,reset,mouse)

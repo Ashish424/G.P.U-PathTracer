@@ -168,40 +168,36 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
                 float r2 = curand_uniform(randstate);
                 float r2s = sqrtf(r2);
 
-                // compute orthonormal coordinate frame uvw with hitpoint as origin
-                vec3 w = nl; w = normalize(w);
-                vec3 u = cross((fabs(w.x) > .1 ? vec3(0, 1, 0) : vec3(1, 0, 0)), w); u = normalize(u);
-                vec3 v = cross(w, u);
 
+                vec3 nt,nb;
+                nt = (fabs(nl.x) > fabs(nl.y))?vec3(nl.z, 0, -nl.x):vec3(0, -nl.z, nl.y);
+                nt = normalize(nt);
+                nb = cross(nl,nt);
+                nb = normalize(nb);
+
+                vec3 randVec = uniformSampleHemisphere(curand_uniform(randstate),curand_uniform(randstate));
                 // compute cosine weighted random ray direction on hemisphere
-                nextdir = u*cosf(phi)*r2s + v*sinf(phi)*r2s + w*sqrtf(1 - r2);
-                nextdir = normalize(nextdir);
+
+                nextdir = vec3(nb.x*randVec.x+nl.x*randVec.y+nt.x*randVec.z,
+                               nb.y*randVec.x+nl.y*randVec.y+nt.y*randVec.z,
+                               nb.z*randVec.x+nl.z*randVec.y+nt.z*randVec.z);
+                nextdir = glm::normalize(nextdir);
 
                 // offset origin next path segment to prevent self intersection
+                //TODO magic num here
                 hitpos += nl * 0.001f; // scene size dependent
 
                 // multiply mask with colour of object
                 mask *= objcol;
 
 
-//                vec3 nt,nb;
-//                nt = (fabs(nl.x) > fabs(nl.y))?vec3(nl.z, 0, -nl.x):vec3(0, -nl.z, nl.y);
-//                nb = cross(nl,nt);
-//
-//                vec3 randVec = uniformSampleHemisphere(curand_uniform(&randState),curand_uniform(&randState));
-//                // compute cosine weighted random ray direction on hemisphere
-//
-//                nextdir = vec3(nt.x*randVec.x+nb.x*randVec.y+nl.x*randVec.z,
-//                               nt.y*randVec.x+nb.y*randVec.y+nl.y*randVec.z,
-//                               nt.z*randVec.x+nb.z*randVec.y+nl.z*randVec.z);
-//                nextdir = glm::normalize(nextdir);
-//
-//                // offset origin next path segment to prevent self intersection
-//                //TODO magic num here
-//                hitpos += nl * 0.001f; // scene size dependent
-//
-//                // multiply mask with colour of object
-//                mask *= objcol;
+                if(x == 9*w/10 && y == 9*h/10) {
+//                    printf("phi is %f\n",phi);
+                    printf("next dir printing %f %f %f\n", nextdir.x, nextdir.y, nextdir.z);
+                    printf("hit pos printing %f %f %f\n",hitpos.x, hitpos.y, hitpos.z);
+
+
+                }
 
             }
 
@@ -286,13 +282,13 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
 
 
 
-            if(x == w/2 && y == h/2){
-                printf("cam orig%f %f %f cam dir %f %f %f\n",currRay.origin.x,currRay.origin.y,currRay.origin.z,currRay.dir.x,currRay.dir.y,currRay.dir.z);
-            }
+//            if(x == w/2 && y == h/2){
+//                printf("cam orig%f %f %f cam dir %f %f %f\n",currRay.origin.x,currRay.origin.y,currRay.origin.z,currRay.dir.x,currRay.dir.y,currRay.dir.z);
+//            }
         }
 
 
-        if(x == w/2 && y == h/2){
+        if(x == 9*w/10 && y == 9*h/10){
             printf("seperator\n");
         }
 
