@@ -90,7 +90,7 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
             vec3 trinormal = vec3(0, 0, 0);
             Mat mat;
 
-//            intersectAllTriangles(triTex,currRay,scene_t,minTriIdx,triTexSize,geomtype,info.cullBackFaces);
+//            intersectAllTriangles(triTex,currRay,scene_t,minTriIdx,triTexSize,geomtype,trinormal,info.cullBackFaces);
             intersectBVHandTriangles(currRay,0,F32_MAX,
                                      info.bvhData.dev_triNode,
                                      info.bvhData.dev_triPtr,

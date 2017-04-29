@@ -280,7 +280,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         BVH::Stats stats;
         BVH myBVH(&scene, defaultplatform, defaultparams);
 
-//        std::cout << "Building CudaBVH\n";
+
 
         gpuBVH = new CudaBVH(myBVH,BVHLayout_Compact);
 
@@ -372,8 +372,17 @@ void BasicScene::run() {
         info.cam.dirty = false;
 
 
+//        const clock_t begin_time = clock();
         glfwPollEvents();
+//        float runTime = (float)1000*( clock() - begin_time ) /  CLOCKS_PER_SEC;
+//        printf("Time for polling: %fs\n", runTime);
+
+
+//                const clock_t begin_time = clock();
+
         update(delta);
+//        float runTime = (float)1000*( clock() - begin_time ) /  CLOCKS_PER_SEC;
+//        printf("Time for update: %fs\n", runTime);
 
 
         //wait till prev frame done
@@ -389,6 +398,17 @@ void BasicScene::run() {
         launchKernel(info);
         g.Stop();
         info.time_elapsed = g.Elapsed();
+
+//        static float accumTimer = 0;
+//
+//        if(frameNumber % 6 ==0){
+//            printf("accum time is %f\n",accumTimer);
+//            accumTimer = info.time_elapsed;
+//        }
+//        else{
+//
+//            accumTimer+=info.time_elapsed;
+//        }
 //        std::cout << g.Elapsed() << std::endl;
 
 
@@ -411,9 +431,35 @@ void BasicScene::run() {
 
 
 
+//        GLuint timeElapsed = 0;
+//
+//        GLuint64 startTime, stopTime;
+//        unsigned int queryID[2];
+
+
+// generate two queries
+//        glGenQueries(2, queryID);
+//
+//        glQueryCounter(queryID[0], GL_TIMESTAMP);
+//        {
+//        draw();
+//
+//            glfwSwapBuffers(mainWindow);
+//
+//        }
+//        glQueryCounter(queryID[1], GL_TIMESTAMP);
+//        GLint stopTimerAvailable = 0;
+//        while (!stopTimerAvailable) {
+//            glGetQueryObjectiv(queryID[1],GL_QUERY_RESULT_AVAILABLE,&stopTimerAvailable);
+//        }
+//
+//// get query results
+//        glGetQueryObjectui64v(queryID[0], GL_QUERY_RESULT, &startTime);
+//        glGetQueryObjectui64v(queryID[1], GL_QUERY_RESULT, &stopTime);
+//
+//        printf("Time spent on the GPU: %f ms\n", (stopTime - startTime) / 1000000.0);
+
         draw();
-
-
         glfwSwapBuffers(mainWindow);
 
 

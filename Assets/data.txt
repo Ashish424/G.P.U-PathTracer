@@ -1,19 +1,80 @@
+GPU SINGLE LOOP ANALYSIS @ 1280*720 @ depth = 4 @ Scene Complexity = 132941 tris
+{
+
+Input Pooling Time Spend => 0.004000ms	
+Time for update => 0.024000ms
+Kernel Time = 36.341ms
+CudaOpenglInterop(Mem Transfer) =   0.092448;
+Time spent on the GPU(Opengl Stuff) =  0.053664 ms
+Buffer Swap Time = 9.997248 ms
+
+
+}
+
+
+
+{
 Mem Transfer Times(CudaOpenglInterop(Mem Transfer))
 1280*720 =   0.092448;
 2*1280*720 = 0.179296
 3*1280*720 = 0.200352
 4*1280*720 = 0.349824
+}
+
+
+Gpu Single Frame Rendering Time @ 1280 * 720 @ Scene Complexity @ 4 depth without BVH
+{
 
 
 
-Gpu Single Frame Rendering Time @ 1280 * 720 @ Scene Complexity
+
+112 tris = 55ms
+
+	
+}
+
+{
+Gpu Single Frame Rendering Time @ 1280 * 720 @ Scene Complexity @ 4 depth
 132941*1 tris = 36.5ms
 132941*2 tris = 52.5ms
 132941*3 tris = 72 ms
 132941*4 tris = 87 ms
+}
 
 
+
+{
 Gpu 50 Frames Rendering Time @ 1280 *720 @ depth 4 (compare with cpu 50 samples @ depth 4)
+
+GPU = 1826 ms
+CPU = 4 mins, 52 secs
+
+Gpu 25 Frames Rendering Time @ 1280 *720 @ depth 4 (compare with cpu 25 samples @ depth 4)
+
+GPU = 912.673401ms
+CPU = 2 mins, 19 secs
+
+Gpu 12 Frames Rendering Time @ 1280 *720 @ depth 4 (compare with cpu 12 samples @ depth 4)
+GPU = 438.221863ms
+CPU = 1 mins, 6 secs
+
+Gpu 6 Frames Rendering Time @ 1280 *720 @ depth 4 (compare with cpu 6 samples @ depth 4)
+GPU = 219.404541ms
+CPU =  34 sec
+}
+
+
+{
+Time Taken Vs Resolution
+Gpu 12 Frames Rendering Time @ 640 *360 @ depth 4 (compare with cpu 12 samples @ depth 4)
+115.586105ms
+Gpu 12 Frames Rendering Time @ 640 *360*2 @ depth 4 (compare with cpu 12 samples @ depth 4)
+232.148880ms
+Gpu 12 Frames Rendering Time @ 640*2 *360*1.5 @ depth 4 (compare with cpu 12 samples @ depth 4)
+347.303741
+Gpu 12 Frames Rendering Time @ 640*2 *360*2 @ depth 4 (compare with cpu 12 samples @ depth 4)
+438.043793
+}
 
 
 

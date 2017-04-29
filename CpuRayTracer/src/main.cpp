@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     time_t start, stop;
     time(&start);
 
-    int samples = 1;            // Default samples per pixel
+    int samples = 50;            // Default samples per pixel
 
     Camera camera = Camera(glm::dvec3(-2, -5, 2.5), glm::dvec3(0,0,0), 1280, 720);     // Create camera
 

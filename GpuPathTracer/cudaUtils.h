@@ -191,7 +191,7 @@ inline __device__ vec3 uniformSampleHemisphere(float f1,float f2) {
 
 }
 
-__device__ void intersectAllTriangles(const vec4 * tex ,const Ray& camRay, float& t_scene, int & triangle_id, const size_t numVerts, int& geomtype,bool cullBackFaces){
+__device__ void intersectAllTriangles(const vec4 * tex ,const Ray& camRay, float& t_scene, int & triangle_id, const size_t numVerts, int& geomtype,glm::vec3 & trinormal,bool cullBackFaces){
     size_t numTris = numVerts/3;
 
     for (size_t i = 0; i < numTris; i++)
@@ -211,6 +211,9 @@ __device__ void intersectAllTriangles(const vec4 * tex ,const Ray& camRay, float
         }
 
     }
+
+
+    trinormal = glm::cross(glm::vec3(tex[triangle_id*3] -tex[triangle_id*3+1]),glm::vec3(tex[triangle_id*3] -tex[triangle_id*3+2]));
 }
 
 
