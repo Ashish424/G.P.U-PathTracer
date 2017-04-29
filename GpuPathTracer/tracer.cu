@@ -200,7 +200,7 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
                 mask *= objcol;
             }
             // perfectly refractive material (glass, water)
-            else if (mat == REFR){
+            else if (mat == Mat::REFR){
 
                 bool into = dot(n, nl) > 0; // is ray entering or leaving refractive material?
                 float nc = 1.0f;  // Index of Refraction air
@@ -252,7 +252,7 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
                     }
                 }
             }
-            else if(mat == METAL){
+            else if(mat == Mat::METAL){
 
 
 
@@ -260,13 +260,12 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
                 // the higher the phong exponent, the closer the perturbed vector is to the ideal reflection direction
                 float phi = 2 * M_PI * curand_uniform(randstate);
                 float r2 = curand_uniform(randstate);
-                //TODO add this to GUI
                 float phongexponent = info.phongExpo;
 
-                float cosTheta = 1 - r2;
-                powf(1 - r2, 1.0f / (phongexponent + 1));
+                float cosTheta = powf(1 - r2, 1.0f / (phongexponent + 1));
                 float sinTheta = sqrtf(1 - cosTheta * cosTheta);
 
+//                printf("cos theta is %f\n",cosTheta);
                 // create orthonormal basis uvw around reflection vector with hitpoint as origin
                 // w is ray direction for ideal reflection
                 nextdir = currRay.dir - nl * dot(nl, currRay.dir) * 2.0f;

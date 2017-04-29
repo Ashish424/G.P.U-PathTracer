@@ -84,7 +84,6 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     //additonal glfw setup
     {
         glfwSetWindowUserPointer(mainWindow, this);
-//        glfwSetCursorPosCallback(mainWindow, mousePosCallback);
         glfwSetKeyCallback(mainWindow, keyCallback);
         glfwSetScrollCallback(mainWindow, scrollCallback);
         glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -162,8 +161,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
         thrust::host_vector<vec4> cpuTris1(currentMesh.ve);
 
-//        thrust::host_vector<vec4> cpuTris1;
-        cout << "num verts: " << cpuTris1.size()<< endl;
+
         //TODO see if pinned memory here
         cudaMalloc(&gpuTris,sizeof(vec4)*cpuTris1.size());
         cudaMemcpy(gpuTris,thrust::raw_pointer_cast(&cpuTris1[0]),sizeof(vec4)*cpuTris1.size(),cudaMemcpyHostToDevice);
@@ -271,7 +269,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
 
 
-        auto holdTris(uf::loadIndexedTris("./gto_text.obj"));
+        auto holdTris(uf::loadIndexedTris("./gto.obj"));
 
 
         SceneMesh scene(holdTris.triIndexes.size(),holdTris.ve.size(),holdTris.triIndexes,holdTris.ve);
@@ -383,7 +381,7 @@ void BasicScene::run() {
 
         info.hash = uf::hash(frameNumber);
 
-         info.constantPdf =  (info.cam.dirty||info.clearBuffer)?(1):(info.constantPdf+1);
+        info.constantPdf =  (info.cam.dirty||info.clearBuffer)?(1):(info.constantPdf+1);
 
 
         uf::GpuTimer g;
@@ -429,10 +427,6 @@ void BasicScene::run() {
 }
 
 
-
-void mousePosCallback(GLFWwindow *window, double posX, double posY) {
-
-}
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     auto sn  = (BasicScene * )glfwGetWindowUserPointer(window);
@@ -502,9 +496,11 @@ void BasicScene::Updater::operator()(double delta) {
         float offsetY = float(yPos - lastY);
         lastX = xPos;
         lastY = yPos;
-        if (offsetX > prtScn.info.cam.camBias.x || offsetY > prtScn.info.cam.camBias.y)
+        if (abs(offsetX) > prtScn.info.cam.bias.x || abs(offsetY) > prtScn.info.cam.bias.y) {
+
+            setPitchAndRoll(prtScn.info.cam, offsetX, offsetY);
             prtScn.info.cam.dirty = true;
-        setPitchAndRoll(prtScn.info.cam, offsetX, offsetY);
+        }
 
     }
     else{
@@ -551,14 +547,15 @@ void BasicScene::draw() {
 void BasicScene::drawWindow(bool visible) {
     ImGui::Begin("Test Window", &visible);
     int b_size[2] = {(int)info.blockSize.x, (int)info.blockSize.y};
-
     ImGui::SliderInt2("BlockSize", b_size , 16, 256);
+
+    info.blockSize.x = b_size[0];
+    info.blockSize.y = b_size[1];
+
     ImGui::SliderInt("Depth", (int *) &info.depth, 1, 10);
     ImGui::SliderFloat("Air Reflective Index", &info.air_ref_index, 1.0f, 2.0f);
     ImGui::SliderFloat("Glass Reflective Index", &info.glass_ref_index, 1.0f, 2.0f);
-
-    ImGui::SliderFloat("Metal Phong Expo", &info.phongExpo, 1.0f,50.0f);
-
+    ImGui::SliderFloat("Metal Phong Expo", &info.phongExpo, 1.0f,500.0f);
     ImGui::Text("Time per frame: %0.2f ms", info.time_elapsed);
     ImGui::Checkbox("Back face culling", &info.cullBackFaces);
 
@@ -586,10 +583,11 @@ void BasicScene::drawWindow(bool visible) {
     info.emi = vec3(emi[0],emi[1],emi[2]);
     info.col = vec3(col[0],col[1],col[2]);
 
+    float bias[2] = {info.cam.bias.x,info.cam.bias.y};
+    ImGui::SliderFloat2("Cam Bias",bias,0.0f,10.0f);
+    info.cam.bias = glm::vec2(bias[0],bias[1]);
 
 
-    info.blockSize.x = b_size[0];
-    info.blockSize.y = b_size[1];
     ImGui::End();
 }
 

@@ -23,7 +23,7 @@ struct CamInfo{
     float aspect;
     float fov;
     bool dirty = true;
-    glm::vec2 camBias = glm::vec2(0.1,0.1);
+    glm::vec2 bias = glm::vec2(0.01,0.01);
     bool enabled = true;
 };
 

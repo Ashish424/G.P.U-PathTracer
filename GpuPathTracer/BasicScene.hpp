@@ -26,7 +26,6 @@ public:
     kernelInfo info;
 
 private:
-    friend void mousePosCallback(GLFWwindow * window,double posX,double posY);
     friend void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
     friend void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
     void draw();

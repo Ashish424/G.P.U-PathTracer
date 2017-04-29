@@ -1,0 +1,32 @@
+Mem Transfer Times(CudaOpenglInterop(Mem Transfer))
+1280*720 =   0.092448;
+2*1280*720 = 0.179296
+3*1280*720 = 0.200352
+4*1280*720 = 0.349824
+
+
+
+Gpu Single Frame Rendering Time @ 1280 * 720 @ Scene Complexity
+132941*1 tris = 36.5ms
+132941*2 tris = 52.5ms
+132941*3 tris = 72 ms
+132941*4 tris = 87 ms
+
+
+Gpu 50 Frames Rendering Time @ 1280 *720 @ depth 4 (compare with cpu 50 samples @ depth 4)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
