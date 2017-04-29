@@ -461,8 +461,6 @@ void BasicScene::run() {
 
         draw();
         glfwSwapBuffers(mainWindow);
-
-
         ++frameNumber;
     }
 
