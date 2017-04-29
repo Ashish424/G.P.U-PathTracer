@@ -192,10 +192,10 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         spheres.push_back(Sphere(vec4(-pushX-rad,0.0f,-20,rad),vec3(30.0f/255.0f,76.0f/255.0f,14.0/255.0f),vec3(30.0f/255.0f,76.0f/255.0f,14.0/255.0f),Mat::DIFF));
 
         spheres.push_back(Sphere(vec4( 0.0f,0.0f,-rad*1.5-20,rad),vec3(197.0f/255.0,153.0f/255.0f,92.0f/255.0f),vec3(1.0f,1.0f,1.0f),Mat::DIFF));
-        spheres.push_back(Sphere(vec4( 0.0f,0.0f,rad*1.5+20,rad),vec3(.0f,1.0f,0.8f),vec3(5.0f,5.0f,0.5f),Mat::DIFF));
+        spheres.push_back(Sphere(vec4( 0.0f,0.0f,rad*1.5+20,rad),vec3(.0f,1.0f,0.8f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
 
-        spheres.push_back(Sphere(vec4(11.0f, -8,-35,4),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::SPEC));
-//        spheres.push_back(Sphere(vec4(12.0f, 0,-21,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::METAL));
+        spheres.push_back(Sphere(vec4(13.0f, -8,-35,6),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::SPEC));
+//        spheres.push_back(Sphere(vec4(12.0f, 0,-21,5),vec3(1.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::METAL));
 
 
 
@@ -221,6 +221,11 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         info.numSpheres = numSpheres;
         info.cullBackFaces = true;
         info.depth = 4;
+        info.bkColor = glm::vec3(1,1,1);
+
+
+        info.emi = vec3(0.0f,0.0f,0.0f);
+        info.col = vec3(246.0f/256.0f,246.0/255.0f,70.0/255.0f);
     }
 
     //setup camera
@@ -266,7 +271,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
     {
 
 
-        auto holdTris(uf::loadIndexedTris("./gto.obj"));
+        auto holdTris(uf::loadIndexedTris("./gto_text.obj"));
 
 
         SceneMesh scene(holdTris.triIndexes.size(),holdTris.ve.size(),holdTris.triIndexes,holdTris.ve);
@@ -277,7 +282,7 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         BVH::Stats stats;
         BVH myBVH(&scene, defaultplatform, defaultparams);
 
-        std::cout << "Building CudaBVH\n";
+//        std::cout << "Building CudaBVH\n";
 
         gpuBVH = new CudaBVH(myBVH,BVHLayout_Compact);
 
@@ -368,6 +373,7 @@ void BasicScene::run() {
 
         info.cam.dirty = false;
 
+
         glfwPollEvents();
         update(delta);
 
@@ -377,7 +383,7 @@ void BasicScene::run() {
 
         info.hash = uf::hash(frameNumber);
 
-        info.constantPdf =  (info.cam.dirty)?(1):(info.constantPdf+1);
+         info.constantPdf =  (info.cam.dirty||info.clearBuffer)?(1):(info.constantPdf+1);
 
 
         uf::GpuTimer g;
@@ -385,7 +391,7 @@ void BasicScene::run() {
         launchKernel(info);
         g.Stop();
         info.time_elapsed = g.Elapsed();
-        std::cout << g.Elapsed() << std::endl;
+//        std::cout << g.Elapsed() << std::endl;
 
 
 
@@ -409,7 +415,9 @@ void BasicScene::run() {
 
         draw();
 
+
         glfwSwapBuffers(mainWindow);
+
 
         ++frameNumber;
     }
@@ -439,7 +447,6 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
             glfwSetWindowShouldClose(window, GL_TRUE);
         }
         else if(key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT){
-            printf("pressed shift \n");
             sn->info.cam.enabled = !sn->info.cam.enabled;
         }
     }
@@ -451,7 +458,6 @@ void scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
     assert(scn!= nullptr);
     using namespace std;
     float off = scrollSensitivity*(float)yoffset;
-    cout << glm::to_string(scn->info.cam.front*off) << endl;
     scn->info.cam.pos+=off*scn->info.cam.front;
     scn->info.cam.dirty = scn->info.cam.enabled;
 
@@ -550,33 +556,38 @@ void BasicScene::drawWindow(bool visible) {
     ImGui::SliderInt("Depth", (int *) &info.depth, 1, 10);
     ImGui::SliderFloat("Air Reflective Index", &info.air_ref_index, 1.0f, 2.0f);
     ImGui::SliderFloat("Glass Reflective Index", &info.glass_ref_index, 1.0f, 2.0f);
+
+    ImGui::SliderFloat("Metal Phong Expo", &info.phongExpo, 1.0f,50.0f);
+
     ImGui::Text("Time per frame: %0.2f ms", info.time_elapsed);
     ImGui::Checkbox("Back face culling", &info.cullBackFaces);
 
     const char* listbox_items[] = { "DIFF","SPEC","REFR" ,"METAL"};
-    int listbox_item_current = Mat::DIFF;
+    int listbox_item_current = 0;
 
-    if(ImGui::ListBox("Mat Select", &listbox_item_current, listbox_items, IM_ARRAYSIZE(listbox_items), 4)){
-        printf("selected %d\n",listbox_item_current);
+    if(info.clearBuffer = ImGui::ListBox("Mat Select", &listbox_item_current, listbox_items, IM_ARRAYSIZE(listbox_items), 4)){
+
+        if(listbox_item_current == 0)
+            info.triCurrentMat = Mat::DIFF;
+        else if(listbox_item_current == 1)
+            info.triCurrentMat = Mat::SPEC;
+        else if(listbox_item_current == 2)
+            info.triCurrentMat = Mat::REFR;
+        else
+            info.triCurrentMat = Mat::METAL;
+
+
     }
+    float emi[3] = {info.emi.x,info.emi.y,info.emi.z};
+    float col[3] = {info.col.x,info.col.y,info.col.z};
 
-//    if(listbox_item_current ==  Mat::DIFF){
-        ;
-//    }
-//    else if(listbox_item_current == Mat::SPEC){
-//
-//    }
-//    else if(listbox_item_current == Mat::REFR){
-//
-//    }
-//    else{
-//
-//    }
+    ImGui::SliderFloat3("Emissive Color",emi,0.0f,1.0f);
+    ImGui::SliderFloat3("Obj Color",col,0.0f,1.0f);
+    info.emi = vec3(emi[0],emi[1],emi[2]);
+    info.col = vec3(col[0],col[1],col[2]);
 
 
 
-//    if (ImGui::Button("Button")) { std:: cout <<"button named button clicked" << std::endl;
-//    }
     info.blockSize.x = b_size[0];
     info.blockSize.y = b_size[1];
     ImGui::End();

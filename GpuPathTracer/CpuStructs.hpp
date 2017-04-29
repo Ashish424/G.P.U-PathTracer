@@ -64,6 +64,11 @@ struct kernelInfo{
     float time_elapsed;
     float air_ref_index = 1.0f;
     float glass_ref_index = 1.4f;
+    Mat triCurrentMat = Mat::DIFF;
+    bool clearBuffer = false;
+    vec3 bkColor;
+    float phongExpo = 30;
+     vec3 emi,col;
 };
 
 

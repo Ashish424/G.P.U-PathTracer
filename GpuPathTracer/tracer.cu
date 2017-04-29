@@ -122,26 +122,21 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
             else if(geomtype == GeoType::TRI){
 
                 n = normalize(trinormal);
-                if(x == w/2 && y == h/2){
-                    printf("normal of tri is %f %f %f\n",n.x,n.y,n.z);
-                }
                 nl = dot(n, currRay.dir) < 0 ? n : n * -1.0f;  // correctly oriented normal
 
-                //TODO see this
-//                vec3 tri1 = info.bvhData.dev_triPtr[minTriIdx];
 
 
-                //TODO correct here color,mat hardcoded
-
-                vec3 colour(246.0f/256.0f,246.0/255.0f,70.0/255.0f); // hardcoded triangle colour  .9f, 0.3f, 0.0f
-                objcol = colour;
-                emit = vec3(0.0, 0.0, 0.0);  // object emission
+                objcol = info.col;
+                emit = info.emi;
                 accucolor += (mask * emit);
 
-                mat = Mat::DIFF;
+                mat = info.triCurrentMat;
 
 
 
+            }
+            else if(geomtype == GeoType::NONE){
+                return info.bkColor;
             }
 //            else if(geomtype == GeoType::BOX){
 //                Box &box = boxes[box_id];
@@ -259,20 +254,26 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
             }
             else if(mat == METAL){
 
+
+
                 // compute random perturbation of ideal reflection vector
                 // the higher the phong exponent, the closer the perturbed vector is to the ideal reflection direction
                 float phi = 2 * M_PI * curand_uniform(randstate);
                 float r2 = curand_uniform(randstate);
                 //TODO add this to GUI
-                float phongexponent = 30;
-                float cosTheta = powf(1 - r2, 1.0f / (phongexponent + 1));
+                float phongexponent = info.phongExpo;
+
+                float cosTheta = 1 - r2;
+                powf(1 - r2, 1.0f / (phongexponent + 1));
                 float sinTheta = sqrtf(1 - cosTheta * cosTheta);
 
                 // create orthonormal basis uvw around reflection vector with hitpoint as origin
                 // w is ray direction for ideal reflection
-                vec3 w1 = currRay.dir - n * 2.0f * dot(n, currRay.dir); w1 = normalize(w1);
+                nextdir = currRay.dir - nl * dot(nl, currRay.dir) * 2.0f;
+
+                vec3 w1 = currRay.dir - nl * 2.0f * dot(nl, currRay.dir); w1 = normalize(w1);
                 vec3 u = cross((fabs(w1.x) > .1 ? vec3(0, 1, 0) : vec3(1, 0, 0)), w1); u = normalize(u);
-                vec3 v = cross(w1, u); // v is already normalised because w and u are normalised
+                vec3 v = cross(w1, u);
 
                 // compute cosine weighted random ray direction on hemisphere
                 nextdir = u * cosf(phi) * sinTheta + v * sinf(phi) * sinTheta + w * cosTheta;
