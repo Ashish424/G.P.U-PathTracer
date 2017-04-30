@@ -122,7 +122,8 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
             else if(geomtype == GeoType::TRI){
 
                 n = normalize(trinormal);
-                nl = dot(n, currRay.dir) < 0 ? n : n * -1.0f;  // correctly oriented normal
+                nl = n;
+                dot(n, currRay.dir) < 0 ? n : n * -1.0f;  // correctly oriented normal
 
 
 

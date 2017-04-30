@@ -496,8 +496,9 @@ void scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
     assert(scn!= nullptr);
     using namespace std;
     float off = scrollSensitivity*(float)yoffset;
-    scn->info.cam.pos+=off*scn->info.cam.front;
-    scn->info.cam.dirty = scn->info.cam.enabled;
+    if(scn->info.cam.dirty = scn->info.cam.enabled){
+        scn->info.cam.pos+=off*scn->info.cam.front;
+    }
 
 
 

@@ -9,7 +9,7 @@ set(GpuBasicCudaSrc tracer.cu)
 
 #MESSAGE(STATUS "deps " ${PLATFORM_LINK_GLAD})
 cuda_add_executable(GpuBasicTracer ${GpuBasicCudaSrc}  ${GpuBasicSrc} ${GpuBasicHdrs} ${IMGUI_SOURCE} ${TINY_OBJ_SOURCE}  ${DEPS_SOURCES})
-target_link_libraries(GpuBasicTracer assimp glfw ${PLATFORM_LINK_GLAD})
+target_link_libraries(GpuBasicTracer glfw ${PLATFORM_LINK_GLAD})
 set_target_properties(GpuBasicTracer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/GpuBasicTracer)
 
 file(GLOB Shaders

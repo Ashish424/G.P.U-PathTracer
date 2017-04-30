@@ -1,0 +1,333 @@
+commit 3839fdd68a11e3634aa081995a7d356c3a03109a
+Author: ashish <ashishaapan@gmail.com>
+Date:   Sat Apr 29 13:43:52 2017 +0530
+
+    sync commit 4
+
+commit 4d3a09e069e7994f43fedd6747cb50bc4860319d
+Author: ashish <ashishaapan@gmail.com>
+Date:   Sat Apr 29 13:03:10 2017 +0530
+
+    sync commit 2
+
+commit f5a506ab26da4bad617f4fe33ff2d8d93a361d87
+Author: ashish <ashishaapan@gmail.com>
+Date:   Sat Apr 29 11:46:47 2017 +0530
+
+    sync home to lab
+
+commit 3de73ce25e3148ac80790091b19ab753379fc483
+Author: ashish <ashishaapan@gmail.com>
+Date:   Sat Apr 29 06:46:23 2017 +0530
+
+    before stats
+
+commit 4a7d1bd998f51090917186761b3c5fdf5ba3eb0d
+Author: ashish <ashishaapan@gmail.com>
+Date:   Sat Apr 29 04:34:13 2017 +0530
+
+    fixed camera reset bug
+
+commit 07e129d83b204d787da8b51167eba0e167dd9116
+Author: ashish <ashishaapan@gmail.com>
+Date:   Sat Apr 29 03:52:57 2017 +0530
+
+    gto sphere cornell shots
+
+commit f6b9f2da21e0ba41c1eaff8e38544ef5aaab2189
+Author: ashish <ashishaapan@gmail.com>
+Date:   Sat Apr 29 01:01:46 2017 +0530
+
+    delete unused stuff
+
+commit d3d9f786807c056bc73406af74d2a1d9f77028a6
+Merge: 2d786e8 da7a29a
+Author: ashish <ashishaapan@gmail.com>
+Date:   Sat Apr 29 00:19:11 2017 +0530
+
+    merged gui
+
+commit 2d786e80b6b3ce5262850a14842c885ad02e37a1
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 28 23:44:12 2017 +0530
+
+    sync state
+
+commit da7a29a87ef79d284097deb16ee1246786c08fbb
+Author: Priyanshu Singh <priyanshusingh05101994@gmail.com>
+Date:   Fri Apr 28 23:29:19 2017 +0530
+
+    imgui 3
+
+commit 4459aef265e18241554800f0d675d30dd0068ca2
+Merge: 43f8031 6d3646c
+Author: Priyanshu Singh <priyanshusingh05101994@gmail.com>
+Date:   Fri Apr 28 22:59:02 2017 +0530
+
+    Merge branch 'master' of https://github.com/Ashish424/GpuComputingProject
+
+commit 43f80317b031239a0e949cdf6d64d220d3637e45
+Author: Priyanshu Singh <priyanshusingh05101994@gmail.com>
+Date:   Fri Apr 28 22:58:39 2017 +0530
+
+    imgui 2
+
+commit 6d3646c551e8b55abe0025f301d76bf228c82dbe
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 28 22:56:55 2017 +0530
+
+    anti-aliasing using jittering
+
+commit 10c3ed57ca3cad7722f7ed13ea4793203a92e291
+Author: Priyanshu Singh <priyanshusingh05101994@gmail.com>
+Date:   Fri Apr 28 22:25:30 2017 +0530
+
+    imgui
+
+commit 8f07c09ee709e3904035923cf6e84ad5d53f9b47
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 28 21:57:38 2017 +0530
+
+    added refraction and imgui
+
+commit f35c36cde75a90fbdb75c8bd04ee1788e3c0a4d4
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 28 21:18:06 2017 +0530
+
+    added frame convergence
+
+commit bf9ea5db99ee1f5dc0eb2fcef411ec125ac9670c
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 28 18:56:49 2017 +0530
+
+    fixed diffuse material
+
+commit 445a6041c60f5ceecc6bebe1429b57de156ba7cf
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 28 18:06:28 2017 +0530
+
+    fix diffuse
+
+commit e3a774734241be364b82b70c6dd37994a5d19fb1
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 28 15:22:52 2017 +0530
+
+    testing materials
+
+commit 336e67d8d9066763bd9805d40ebadb4b397e6d6f
+Author: ashish <ashishaapan@gmail.com>
+Date:   Thu Apr 27 23:21:28 2017 +0530
+
+    added backface culling support to bvh
+
+commit 4f47c5a71ed125eaf0a9fb68dc77069146643b25
+Author: ashish <ashishaapan@gmail.com>
+Date:   Thu Apr 27 21:12:56 2017 +0530
+
+    bvh done dragon depth shots
+
+commit 34b3898303b76925ee423df28b5fe2191a9623b4
+Author: ashish <ashishaapan@gmail.com>
+Date:   Thu Apr 27 20:31:34 2017 +0530
+
+    more bvh bug
+
+commit b2c20db9a5eddc22c97ee672a30757c26a09653b
+Author: ashish <ashishaapan@gmail.com>
+Date:   Thu Apr 27 18:32:25 2017 +0530
+
+    bvh bug hunting
+
+commit afdf996794e7ce2377f20b691494dbca97884522
+Author: ashish <ashishaapan@gmail.com>
+Date:   Wed Apr 26 04:52:12 2017 +0530
+
+    fix bug on cuda bvh
+
+commit 5dc872a4069e4adfd09ff87c6fc164bef2dfd222
+Author: ashish <ashishaapan@gmail.com>
+Date:   Wed Apr 26 04:23:01 2017 +0530
+
+    fixed prev bug and removed assimp
+
+commit 485e8cb11d8124293a5f5b047fc0223bd25de057
+Author: ashish <ashishaapan@gmail.com>
+Date:   Wed Apr 26 01:27:59 2017 +0530
+
+    find bvh bug 2
+
+commit c99d2e5a1ca4ee436cd6b702f5553f9d0310d159
+Author: ashish <ashishaapan@gmail.com>
+Date:   Wed Apr 26 00:50:02 2017 +0530
+
+    find bvh bug
+
+commit e040d63bd8a775141e6d1837d95a2e99d5b60536
+Author: ashish <ashishaapan@gmail.com>
+Date:   Tue Apr 25 23:24:12 2017 +0530
+
+    inter commit
+
+commit a4008e00bde842ac67c53e69a5a5bd54d70e710c
+Merge: 5d9662f 034d22a
+Author: ashish <ashishaapan@gmail.com>
+Date:   Tue Apr 25 22:29:46 2017 +0530
+
+    bvh merge begins
+
+commit 5d9662f63f39f02917e725d702154069b1b53773
+Author: ashish <ashishaapan@gmail.com>
+Date:   Sat Apr 22 14:12:20 2017 +0530
+
+    rand number gen in progress
+
+commit 034d22a760a68a268a9af20be7d339d4ac5c5512
+Author: Priyanshu Singh <priyanshusingh05101994@gmail.com>
+Date:   Sat Apr 22 13:55:39 2017 +0530
+
+    cuda bvh stack
+
+commit 5f313154a5e86e88b3a2d5875979ee09b9b017d5
+Author: Priyanshu Singh <priyanshusingh05101994@gmail.com>
+Date:   Sat Apr 22 03:57:43 2017 +0530
+
+    cuda BVH
+
+commit 36384f5556bbd57739664474ee1cd0fe78ff7851
+Author: Priyanshu Singh <priyanshusingh05101994@gmail.com>
+Date:   Sat Apr 22 00:30:37 2017 +0530
+
+    cpu bvh
+
+commit e6d91a619e6b67428b96665e913f47729b6324f2
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 21 18:47:58 2017 +0530
+
+    cornell depth test
+
+commit e1435942d26bc6acac6bee45e92dab69629ec372
+Author: Priyanshu Singh <priyanshusingh05101994@gmail.com>
+Date:   Fri Apr 21 18:26:18 2017 +0530
+
+    initial commit
+
+commit 8e3f07e7978377f8bdd9c3c9a14a6fe265194562
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 21 17:25:33 2017 +0530
+
+    removed submodules
+
+commit 1daf3e239f9603d554fbea907e66fe3d5efa96b7
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 21 15:22:44 2017 +0530
+
+    fixed arr access bug and added backface culling
+
+commit 96102a29c3ee00c4f105e5ce2511ad4ffa4be7f7
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 21 00:06:49 2017 +0530
+
+    maintenance commit
+
+commit 7e564988ec0a3003aade17a787c11967251b8f7c
+Merge: 45ae230 2619640
+Author: ashish <ashishaapan@gmail.com>
+Date:   Wed Apr 19 18:01:45 2017 +0530
+
+    merged test Global branch
+
+commit 26196409c7c9300dcae23d2b37ec8dfd92c05b55
+Author: ashish <ashishaapan@gmail.com>
+Date:   Wed Apr 19 17:37:21 2017 +0530
+
+    switched to linear mem and glm
+
+commit 45ae2303328cab03d171b9a7d59d3558d20fc2eb
+Author: ashish <ashishaapan@gmail.com>
+Date:   Wed Apr 19 16:16:11 2017 +0530
+
+    basic performance timing
+
+commit 49e85b2259ff345396f4cb979e6a3a2c03a91d3a
+Author: ashish <ashishaapan@gmail.com>
+Date:   Tue Apr 18 13:17:03 2017 +0530
+
+    testing global mem with float4
+
+commit f1f6084a9bd09cb10e715053fd3c3670d8d19cc8
+Author: ashish <ashishaapan@gmail.com>
+Date:   Fri Apr 14 21:51:55 2017 +0530
+
+    basic obj loading support
+
+commit c21889811e4642455e2f45ac5c601b25164cae80
+Author: ashish <ashishaapan@gmail.com>
+Date:   Wed Apr 12 00:31:02 2017 +0530
+
+    basic camera complete
+
+commit 908973e13da57c11023ef23f2084762ff25f0983
+Author: ashish <ashishaapan@gmail.com>
+Date:   Tue Apr 11 21:43:33 2017 +0530
+
+    basic sphere raytraced on GPU
+
+commit c8c54b0fb6be0ceaaf42dac521d237fe3167fe9b
+Author: ashish <ashishaapan@gmail.com>
+Date:   Wed Apr 5 12:50:41 2017 +0530
+
+    temp cuda setup
+
+commit 976455024e1827ef7fc4e8c0a315fa9adedffc4b
+Author: ashish <ashishaapan@gmail.com>
+Date:   Tue Apr 4 17:42:59 2017 +0530
+
+    state before gpu impl
+
+commit 4f581bfdf562c46ca12f2bbe53460f73e53cd80f
+Author: ashish <ashishaapan@gmail.com>
+Date:   Mon Mar 20 19:27:16 2017 +0530
+
+    added realtime drawing C.P.U
+
+commit e0536d4669b4f225d1debca1bd4194a9e3337752
+Author: ashish <ashishaapan@gmail.com>
+Date:   Sun Mar 19 03:30:46 2017 +0530
+
+    glmlized cpu tracer
+
+commit 5aa5e4f4c3848ad87c8cd0c366d59b631d22f48f
+Author: Ashish Aapan <ashishaapan@gmail.com>
+Date:   Sat Mar 18 01:02:22 2017 +0530
+
+    minor changes for windows
+
+commit a00dc436811ad7a350cbf8923edd128985197725
+Author: ashish <ashishaapan@gmail.com>
+Date:   Sat Mar 11 15:37:13 2017 +0530
+
+    Cmake List Changed
+
+commit ceba32ae938bf3b7e989bffa9238d68c81b1dc2e
+Author: ashish <ashishaapan@gmail.com>
+Date:   Tue Mar 7 22:35:21 2017 +0530
+
+    first triangle
+
+commit e0c94bbc0b80709511bf855a1f1c7469e392fd1e
+Author: ashish <ashishaapan@gmail.com>
+Date:   Tue Mar 7 18:00:42 2017 +0530
+
+    added submodules
+
+commit 9a0cac22bf9a1d087ce38fcc7bc89069c8f4f84a
+Author: ashish <ashishaapan@gmail.com>
+Date:   Tue Mar 7 16:42:24 2017 +0530
+
+    first commit
+
+commit 1e2b44b65ffed993e635cfe13cfae5577fae7c02
+Author: ashish <ashishaapan@gmail.com>
+Date:   Tue Mar 7 15:56:36 2017 +0530
+
+    ignore added
