@@ -9,8 +9,7 @@ int main(){
 
 
     std::ios_base::sync_with_stdio(false);
-
-    BasicScene s(640*2,360*2,"Gpu Path Tracer");
+    BasicScene s(1280,720,"Gpu Path Tracer");
     s.run();
 
 

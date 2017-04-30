@@ -193,9 +193,18 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
         spheres.push_back(Sphere(vec4( 0.0f,0.0f,rad*1.5+20,rad),vec3(.0f,1.0f,0.8f),vec3(0.5f,0.5f,0.5f),Mat::DIFF));
 
         spheres.push_back(Sphere(vec4(13.0f, -8,-35,6),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::SPEC));
-//        spheres.push_back(Sphere(vec4(12.0f, 0,-21,5),vec3(1.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::METAL));
+//        spheres.push_back(Sphere(vec4(-2.0f, -15,-28,5),vec3(0.0f,0.0f,0.0f),vec3(1.0f,1.0f,1.0f),Mat::DIFF));
 
 
+//        for(int i = 0;i< 2;++i){
+//            spheres.push_back(Sphere(vec4(-2.0f-2*i*2, -15+3*i,-28-i*12,5),vec3(0.0f,0.0f,0.0f),vec3(246.0f/256.0f,246.0/255.0f,70.0/255.0f),Mat::DIFF));
+//        }
+        spheres.push_back(Sphere(vec4(10.0f, -15,-68,10),vec3(0.0f,1.0f,1.0f),vec3(1.0f,1.0f,1.0f),Mat::DIFF));
+
+
+
+//        info.emi = vec3(0.0f,0.0f,0.0f);
+//        info.col = vec3(246.0f/256.0f,246.0/255.0f,70.0/255.0f);
 
 
 
@@ -283,8 +292,6 @@ BasicScene::BasicScene(int width, int height, const std::string &title):width(wi
 
 
         gpuBVH = new CudaBVH(myBVH,BVHLayout_Compact);
-
-
 
         // allocate and copy scene databuffers to the GPU (BVH nodes, triangle vertices, triangle indices)
         checkCudaErrors(cudaMalloc((void**)&info.bvhData.dev_triNode, gpuBVH->getGpuNodesSize() * sizeof(vec4)));
@@ -378,8 +385,7 @@ void BasicScene::run() {
 //        printf("Time for polling: %fs\n", runTime);
 
 
-//                const clock_t begin_time = clock();
-
+//        const clock_t begin_time = clock();
         update(delta);
 //        float runTime = (float)1000*( clock() - begin_time ) /  CLOCKS_PER_SEC;
 //        printf("Time for update: %fs\n", runTime);
@@ -393,11 +399,11 @@ void BasicScene::run() {
         info.constantPdf =  (info.cam.dirty||info.clearBuffer)?(1):(info.constantPdf+1);
 
 
-        uf::GpuTimer g;
-        g.Start();
+//        uf::GpuTimer g;
+//        g.Start();
         launchKernel(info);
-        g.Stop();
-        info.time_elapsed = g.Elapsed();
+//        g.Stop();
+//        info.time_elapsed = g.Elapsed();
 
 //        static float accumTimer = 0;
 //
@@ -623,13 +629,15 @@ void BasicScene::drawWindow(bool visible) {
     float emi[3] = {info.emi.x,info.emi.y,info.emi.z};
     float col[3] = {info.col.x,info.col.y,info.col.z};
 
-    ImGui::SliderFloat3("Emissive Color",emi,0.0f,1.0f);
-    ImGui::SliderFloat3("Obj Color",col,0.0f,1.0f);
+
+    info.clearBuffer = ImGui::SliderFloat3("Emissive Color",emi,0.0f,1.0f);
+    info.clearBuffer = ImGui::SliderFloat3("Obj Color",col,0.0f,1.0f);
+
     info.emi = vec3(emi[0],emi[1],emi[2]);
     info.col = vec3(col[0],col[1],col[2]);
 
     float bias[2] = {info.cam.bias.x,info.cam.bias.y};
-    ImGui::SliderFloat2("Cam Bias",bias,0.0f,10.0f);
+    info.cam.dirty = ImGui::SliderFloat2("Cam Bias",bias,0.0f,10.0f);
     info.cam.bias = glm::vec2(bias[0],bias[1]);
 
 

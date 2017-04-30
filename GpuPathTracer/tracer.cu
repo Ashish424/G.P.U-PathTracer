@@ -99,9 +99,10 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
 
 
 //            if(scene_t < tmax){
-//                scene_t = min(scene_t,45.0f);
-//                scene_t = (scene_t-15)/30;
-//                scene_t = sqrt(scene_t);
+//                scene_t = min(scene_t,30.0f);
+//                scene_t = (scene_t-5)/25;
+//                scene_t = 1-scene_t;
+////                scene_t*=scene_t;
 //
 //                return vec3(scene_t,scene_t,scene_t);
 //
@@ -204,8 +205,8 @@ __device__ glm::vec3 getSample(const kernelInfo & info,curandState* randstate){
             else if (mat == Mat::REFR){
 
                 bool into = dot(n, nl) > 0; // is ray entering or leaving refractive material?
-                float nc = 1.0f;  // Index of Refraction air
-                float nt = 1.4f;  // Index of Refraction glass/water
+                float nc = info.air_ref_index;  // Index of Refraction air
+                float nt = info.glass_ref_index;  // Index of Refraction glass/water
                 float nnt = into ? nc / nt : nt / nc;  // IOR ratio of refractive materials
                 float ddn = dot(currRay.dir, nl);
                 float cos2t = 1.0f - nnt*nnt * (1.f - ddn*ddn);
