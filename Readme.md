@@ -12,11 +12,8 @@
 
 
 
-
-
-
-
-
+## Source code for original BVH Framework:
+https://code.google.com/archive/p/understanding-the-efficiency-of-ray-traversal-on-gpus/
 
 
 
