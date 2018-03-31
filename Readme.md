@@ -1,15 +1,11 @@
 # Gpu Path Tracer 
 
-* Parallel Path tracer made using Nvidia Cude API and Nvidia accelrated bvh structures.
+* Parallel Path tracer made using Nvidia Cude API and Nvidia accelerated bvh structures.
+* Support for Spheres,Boxes and Triangles
 * Implemented different materials including metal,specular and diffuse
-* 
-* The Monte Carlo Integration is performed over time.This allows the user to work with the app in real time easily.
-
-
+* ProgressiveRendering - The Monte Carlo Integration is performed over time.This allows the user to work with the app in real time easily.
 ![Alt text](Assets/screenshots/poster.png?raw=true "")
 ![Alt text](Assets/screenshots/conrell_gto.png?raw=true "")
-
-
 
 
 
